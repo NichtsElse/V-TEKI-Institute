@@ -1,20 +1,21 @@
 <!--
 Purpose: Describe the current development plan for the V-TEKI MVP and the later migration path.
 Who uses it: Engineers, reviewers, and planning sessions.
-Main dependencies: Current React/Vite MVP, local demo data, and future Express.js/Supabase migration ideas.
+Main dependencies: Current React/Vite MVP, Supabase schema/seed files, local fallback data, and future Express.js migration ideas.
 Public/main sections: Phase breakdown and current next steps.
 Important side effects: None.
 -->
 
 # Development Plan
 
-_Current note: the live app is a local-first MVP with Supabase disabled by default._
+_Current note: the live app is Supabase-first when configured, with local demo data retained as fallback preview._
 
 ## Phase 1: Stabilize Shared Business Rules
 
 - completed certificate eligibility logic
 - completed role mapping helpers
-- completed local auth/session flow
+- completed Supabase OTP auth flow
+- completed local auth/session fallback preview
 
 ## Phase 2: Complete Operational MVP Modules
 
@@ -39,15 +40,16 @@ _Current note: the live app is a local-first MVP with Supabase disabled by defau
 
 ## Phase 5: Future Migration Path
 
-- define Express.js API routes if the project moves back to a backend
-- move auth to Supabase Auth only if migration resumes
-- move persistence to Supabase PostgreSQL only if migration resumes
-- add RLS only if migration resumes
-- add storage only if migration resumes
+- import Supabase schema and seed into the target project
+- verify role pages against Supabase-backed data
+- enable RLS after role verification, table by table
+- define Express.js API routes only if the project later needs a dedicated backend
+- add storage only when file upload requirements become active
 
 ## Immediate Next Steps
 
-1. Verify trainer dashboard and attendance flows across all seeded trainers.
-2. Verify admin attendance participant selection end-to-end.
-3. Improve demo data coverage for edge cases and empty states.
-4. Defer bundle splitting until the MVP flow is stable.
+1. Import `supabase/schema_fixed.sql` and `supabase/seed_fixed.sql`.
+2. Verify trainer dashboard, attendance, invoice, and certificate flows against Supabase.
+3. Enable RLS policies table by table after role verification.
+4. Improve demo data coverage for edge cases and empty states.
+5. Defer bundle splitting until the MVP flow is stable.

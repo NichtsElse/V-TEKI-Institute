@@ -1,14 +1,14 @@
 <!--
 Purpose: Describe the target application architecture for the V-TEKI MVP and future backend migration.
 Who uses it: Engineers, reviewers, and future implementation sessions.
-Main dependencies: Current Vite/React frontend, planned Express.js backend, and Supabase services.
+Main dependencies: Current Vite/React frontend, Supabase services, local fallback adapter, and planned Express.js backend.
 Public/main sections: Frontend layers, backend direction, auth model, authorization model, and business rules.
 Important side effects: None.
 -->
 
 # Application Architecture
 
-_Current note: the live app is a local-first React + Vite MVP with seeded demo data and Supabase disabled by default._
+_Current note: the live app is a React + Vite MVP that is Supabase-first when configured, with seeded local demo data retained as fallback preview._
 
 ## Overview
 
@@ -86,11 +86,12 @@ Responsibilities:
 Current mode:
 
 - `src/api/appClient.js`
-- local in-browser adapter
+- Supabase-backed reads/writes when configured
+- local in-browser adapter as fallback preview
 
 Future mode:
 
-- frontend API service layer calling `Express.js`
+- optional frontend API service layer calling `Express.js`
 - backend persistence through `Supabase`
 
 Responsibilities:
@@ -103,14 +104,15 @@ Responsibilities:
 
 ### Current MVP
 
-- local session handling in frontend adapter
+- Supabase email OTP when configured
+- local session handling only for fallback preview
 - role-aware redirect and sidebar behavior
 
 ### Target backend model
 
 - `Supabase Auth` for identity
-- `Express.js` middleware for auth validation
-- current user endpoint through `/api/auth/me`
+- optional `Express.js` middleware for auth validation if a REST API is added
+- optional current user endpoint through `/api/auth/me`
 
 ## Authorization
 
@@ -137,7 +139,7 @@ Expected access boundaries:
 
 ## RLS Direction
 
-Although the app is currently local-first, design should follow future Supabase RLS boundaries:
+Although RLS is not active yet, design should follow Supabase RLS boundaries:
 
 - participant sees only own records
 - trainer sees only assigned records

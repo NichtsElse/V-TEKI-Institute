@@ -1,9 +1,19 @@
+<!--
+Purpose: Define the intended Supabase Row Level Security strategy for V-TEKI data.
+Who uses it: Database implementers, backend engineers, and security reviewers.
+Main dependencies: Supabase Auth, users_profile, role fields, organization scope, and future SQL policies.
+Public/main sections: Identity model, global policies, operational policies, and helper function notes.
+Important side effects: None; this document is policy guidance and does not apply SQL.
+-->
+
 # Supabase Row Level Security (RLS) Policies
 
-_Current note: this document is a future migration reference. The live MVP currently runs on local demo auth and seeded browser data, so these policies are not active yet._
+_Current note: this document is a future activation reference. The live MVP can use Supabase when configured, but these RLS policies are not active until role flows are verified table by table._
 
 This document defines the intended Row Level Security (RLS) strategy for the V-TEKI Institute platform when transitioning to Supabase PostgreSQL.
 These notes are guidance only. They still need to be converted into real `CREATE POLICY` SQL before they can be applied in Supabase.
+
+Before enabling RLS, import `schema_fixed.sql` and `seed_fixed.sql`, verify each role flow, then apply policies incrementally to minimize lock contention and avoid blocking active reads/writes.
 
 ## Identity & Authentication
 We assume all users are authenticated via Supabase Auth (`auth.users`).

@@ -1,6 +1,14 @@
+<!--
+Purpose: Provide the primary setup and orientation guide for the V-TEKI Institute platform.
+Who uses it: Developers, reviewers, and local demo operators.
+Main dependencies: React/Vite frontend, Supabase client, local fallback adapter, and seeded demo data.
+Public/main sections: Capabilities, tech stack, local run steps, auth, Supabase mode, and project structure.
+Important side effects: None.
+-->
+
 # V-TEKI Institute Platform
 
-_Last updated: 2026-06-11_
+_Last updated: 2026-06-18_
 
 V-TEKI CoE is a Supabase-first MVP frontend for training, certification, attendance, assessment, and corporate reporting flows. The app now expects Supabase for auth and data when enabled, while still keeping a local fallback for offline preview.
 
@@ -53,19 +61,24 @@ npm run build
 
 ## Auth
 
-Primary login now uses Supabase email OTP. The local demo accounts remain only as fallback preview data when Supabase is disabled.
+Primary login uses Supabase email OTP when Supabase is configured. The local demo accounts remain available only as fallback preview data when Supabase is disabled or unavailable.
 
 ## Supabase Mode
 
 Enable Supabase to use the real auth and database flow:
-
-To enable Supabase explicitly:
 
 ```env
 VITE_ENABLE_SUPABASE=true
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+Recommended setup order:
+
+1. Import `supabase/schema_fixed.sql`.
+2. Import `supabase/seed_fixed.sql`.
+3. Start the app with the Supabase env vars above.
+4. Verify role flows before enabling RLS table by table.
 
 ## Project Structure
 
@@ -81,3 +94,4 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 - The dev server is configured to run on `127.0.0.1:4173`.
 - Admin invoice creation is available from the Payments page.
 - Trainer attendance, certificates, and role dashboards have been aligned with the demo data.
+- RLS policies are documented as a future activation step after role verification.

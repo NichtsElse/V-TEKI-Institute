@@ -1,14 +1,14 @@
 <!--
-Purpose: Summarize the target REST API design for the V-TEKI platform.
+Purpose: Summarize the future REST API design for the V-TEKI platform.
 Who uses it: Frontend engineers, backend engineers, and reviewers.
-Main dependencies: Planned Express.js backend and Supabase-backed persistence.
-Public/main sections: Domain endpoints, API conventions, auth, and certificate constraints.
+Main dependencies: Planned Express.js backend, Supabase Auth, Supabase Postgres, and shared domain rules.
+Public/main sections: Current runtime boundary, domain endpoints, API conventions, auth, and RLS alignment.
 Important side effects: None.
 -->
 
 # API Design Summary
 
-_Current note: this is a future backend contract. The live MVP still runs on local demo data and local auth._
+_Current note: this is a future backend contract. The live MVP is Supabase-first when configured and uses local demo data only as fallback preview._
 
 ## API Style
 
@@ -110,6 +110,7 @@ The API should align with future Supabase RLS expectations:
 
 ## Current Runtime
 
-- Frontend runs against the local app client, not this API yet.
-- Supabase and Express are still future migration targets.
-- Certificate eligibility stays shared in the frontend domain layer until backend migration starts.
+- Frontend runs through the app client abstraction, not this REST API yet.
+- Supabase Auth and Postgres are the active backend direction when env vars are configured.
+- Express routes remain a future backend option if the project needs a dedicated API layer.
+- Certificate eligibility stays shared in the frontend domain layer until backend API migration starts.

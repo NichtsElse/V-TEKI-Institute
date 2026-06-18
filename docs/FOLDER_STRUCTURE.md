@@ -1,14 +1,14 @@
 <!--
 Purpose: Describe the current and recommended folder structure for the V-TEKI platform.
 Who uses it: Engineers and maintainers organizing MVP and future backend work.
-Main dependencies: Current frontend layout and the future Express.js migration path.
+Main dependencies: Current frontend layout, Supabase migration files, and the future Express.js migration path.
 Public/main sections: Current structure, recommended frontend structure, and future backend structure.
 Important side effects: None.
 -->
 
 # Folder Structure
 
-_Current note: this repo is running as a local-first React + Vite MVP with seeded demo data._
+_Current note: this repo is running as a React + Vite MVP with Supabase-first runtime support and seeded local fallback data._
 
 ## Current Frontend Structure
 
@@ -32,6 +32,13 @@ src/
     public/
     trainer/
   utils/
+```
+
+```text
+supabase/
+  schema_fixed.sql
+  seed_fixed.sql
+  RLS_POLICIES.md
 ```
 
 ## Recommended Frontend Structure
@@ -98,4 +105,5 @@ server/
 - domain folders hold business logic
 - api folders abstract storage/backend access
 - shared components should avoid business-specific rules
+- supabase files hold database setup, seed data, and RLS planning
 - future backend modules should map to core business domains

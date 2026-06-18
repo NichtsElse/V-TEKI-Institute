@@ -1,11 +1,20 @@
+<!--
+Purpose: Summarize implemented MVP capabilities and the current runtime contract.
+Who uses it: Developers, reviewers, and project handoff sessions.
+Main dependencies: React/Vite frontend, Supabase auth/data path, local fallback adapter, and role modules.
+Public/main sections: Working features, runtime contract, recent stability work, and notes.
+Important side effects: None.
+-->
+
 # Implementation Summary
 
-_Current note: this summary reflects the local-first MVP that is running now, not a migrated Supabase production setup._
+_Current note: this summary reflects the Supabase-first MVP with local fallback preview, not a production-hardened deployment._
 
 ## What Is Working
 
 - public pages
-- local demo auth
+- Supabase OTP auth
+- local demo auth fallback
 - role-based routing
 - participant dashboards and program flows
 - trainer dashboards, batches, attendance, assessments, feedback, and reports
@@ -17,9 +26,9 @@ _Current note: this summary reflects the local-first MVP that is running now, no
 ## Current Runtime Contract
 
 - React + Vite frontend
-- local seeded data in the browser
-- Supabase disabled by default
-- optional future Supabase migration path still documented
+- Supabase-backed data when configured
+- local seeded data in the browser as fallback preview
+- optional future Express.js API path still documented
 
 ## Recent Stability Work
 
@@ -27,9 +36,11 @@ _Current note: this summary reflects the local-first MVP that is running now, no
 - fixed participant attendance presentation
 - fixed certificate generation and download flows
 - added admin invoice creation flow
+- aligned Supabase schema and seed files to the frontend data shape
 - kept the local dev server stable on `127.0.0.1:4173`
 
 ## Notes
 
 - This document is a project summary, not a migration checklist.
-- Supabase and Express.js remain future options, not required for the current demo.
+- RLS activation remains the next database safety milestone after role verification.
+- Express.js remains optional unless the project needs a dedicated backend API.
