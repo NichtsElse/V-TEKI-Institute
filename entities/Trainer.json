@@ -1,0 +1,52 @@
+{
+  "name": "Trainer",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Associated user ID"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Biography"
+    },
+    "expertise": {
+      "type": "string",
+      "description": "Areas of expertise"
+    },
+    "experience_years": {
+      "type": "number",
+      "description": "Years of experience"
+    },
+    "linkedin_url": {
+      "type": "string",
+      "description": "LinkedIn profile URL"
+    },
+    "profile_picture_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "specializations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of specializations"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Certificate",
+  "type": "object",
+  "properties": {
+    "certificate_number": {
+      "type": "string",
+      "description": "Format: VTK-YEAR-CODE-NUMBER"
+    },
+    "registration_id": {
+      "type": "string"
+    },
+    "participant_name": {
+      "type": "string"
+    },
+    "participant_email": {
+      "type": "string"
+    },
+    "program_name": {
+      "type": "string"
+    },
+    "program_code": {
+      "type": "string"
+    },
+    "batch_name": {
+      "type": "string"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "trainer_name": {
+      "type": "string"
+    },
+    "score": {
+      "type": "number"
+    },
+    "certificate_url": {
+      "type": "string"
+    },
+    "qr_code_url": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "valid",
+        "invalid",
+        "revoked"
+      ],
+      "default": "valid"
+    }
+  },
+  "required": [
+    "certificate_number",
+    "participant_name",
+    "program_name"
+  ]
+}

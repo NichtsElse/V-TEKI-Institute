@@ -1,0 +1,101 @@
+{
+  "name": "Program",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Program name"
+    },
+    "code": {
+      "type": "string",
+      "description": "Unique program code"
+    },
+    "description": {
+      "type": "string",
+      "description": "Program description"
+    },
+    "learning_objectives": {
+      "type": "string",
+      "description": "Learning objectives"
+    },
+    "program_type": {
+      "type": "string",
+      "enum": [
+        "webinar",
+        "workshop",
+        "bootcamp",
+        "certification",
+        "corporate_training",
+        "executive_program"
+      ],
+      "description": "Type of program"
+    },
+    "delivery_mode": {
+      "type": "string",
+      "enum": [
+        "online",
+        "offline",
+        "hybrid"
+      ],
+      "description": "Delivery mode"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Duration in hours"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in IDR"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Maximum participants"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Thumbnail image URL"
+    },
+    "brochure_url": {
+      "type": "string",
+      "description": "Brochure file URL"
+    },
+    "category": {
+      "type": "string",
+      "description": "Program category"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced",
+        "executive"
+      ],
+      "default": "beginner"
+    },
+    "passing_score": {
+      "type": "number",
+      "default": 70,
+      "description": "Minimum passing score"
+    },
+    "min_attendance_pct": {
+      "type": "number",
+      "default": 80,
+      "description": "Minimum attendance percentage"
+    }
+  },
+  "required": [
+    "name",
+    "code",
+    "program_type"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "name": "CorporateRegistration",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "pic_name": {
+      "type": "string",
+      "description": "Person In Charge name"
+    },
+    "pic_email": {
+      "type": "string"
+    },
+    "pic_phone": {
+      "type": "string"
+    },
+    "participant_count": {
+      "type": "number"
+    },
+    "batch_id": {
+      "type": "string"
+    },
+    "program_id": {
+      "type": "string"
+    },
+    "program_name": {
+      "type": "string"
+    },
+    "batch_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "confirmed",
+        "cancelled"
+      ],
+      "default": "submitted"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "participant_file_url": {
+      "type": "string",
+      "description": "Uploaded participant list"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Corporate PIC user ID"
+    }
+  },
+  "required": [
+    "company_name",
+    "pic_name",
+    "pic_email"
+  ]
+}

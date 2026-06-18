@@ -1,0 +1,67 @@
+{
+  "name": "AssessmentResult",
+  "type": "object",
+  "properties": {
+    "assessment_id": {
+      "type": "string"
+    },
+    "registration_id": {
+      "type": "string"
+    },
+    "participant_name": {
+      "type": "string"
+    },
+    "participant_email": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_index": {
+            "type": "number"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "is_correct": {
+            "type": "boolean"
+          },
+          "points_earned": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "score": {
+      "type": "number"
+    },
+    "total_points": {
+      "type": "number"
+    },
+    "percentage": {
+      "type": "number"
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "submission_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "graded",
+        "reviewed"
+      ],
+      "default": "submitted"
+    }
+  },
+  "required": [
+    "assessment_id",
+    "registration_id"
+  ]
+}

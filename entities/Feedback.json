@@ -1,0 +1,38 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "registration_id": {
+      "type": "string"
+    },
+    "batch_id": {
+      "type": "string"
+    },
+    "participant_name": {
+      "type": "string"
+    },
+    "trainer_rating": {
+      "type": "number",
+      "description": "1-5 rating"
+    },
+    "material_rating": {
+      "type": "number"
+    },
+    "program_rating": {
+      "type": "number"
+    },
+    "satisfaction_score": {
+      "type": "number"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "suggestions": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "registration_id",
+    "batch_id"
+  ]
+}

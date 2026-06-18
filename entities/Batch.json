@@ -1,0 +1,93 @@
+{
+  "name": "Batch",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Batch name"
+    },
+    "program_id": {
+      "type": "string",
+      "description": "Program ID"
+    },
+    "program_name": {
+      "type": "string",
+      "description": "Program name (denormalized)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date"
+    },
+    "registration_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Registration deadline"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Maximum participants"
+    },
+    "enrolled_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Current enrolled count"
+    },
+    "trainer_id": {
+      "type": "string",
+      "description": "Trainer user ID"
+    },
+    "trainer_name": {
+      "type": "string",
+      "description": "Trainer name"
+    },
+    "venue": {
+      "type": "string",
+      "description": "Physical venue"
+    },
+    "meeting_link": {
+      "type": "string",
+      "description": "Online meeting link"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "open",
+        "closed",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "sessions": {
+      "type": "array",
+      "description": "Session schedule",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "program_id"
+  ]
+}

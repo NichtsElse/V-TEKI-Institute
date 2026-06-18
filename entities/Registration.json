@@ -1,0 +1,104 @@
+{
+  "name": "Registration",
+  "type": "object",
+  "properties": {
+    "registration_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "corporate"
+      ],
+      "default": "individual"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Batch ID"
+    },
+    "program_id": {
+      "type": "string",
+      "description": "Program ID"
+    },
+    "program_name": {
+      "type": "string"
+    },
+    "batch_name": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Participant name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Job title"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Industry"
+    },
+    "corporate_id": {
+      "type": "string",
+      "description": "Corporate registration ID if corporate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "registered",
+        "waiting_payment",
+        "paid",
+        "confirmed",
+        "cancelled"
+      ],
+      "default": "registered"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Associated user ID if registered"
+    },
+    "completion_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed",
+        "failed"
+      ],
+      "default": "not_started"
+    },
+    "attendance_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "pre_assessment_score": {
+      "type": "number"
+    },
+    "post_assessment_score": {
+      "type": "number"
+    },
+    "feedback_submitted": {
+      "type": "boolean",
+      "default": false
+    },
+    "certificate_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "full_name",
+    "email",
+    "batch_id"
+  ]
+}

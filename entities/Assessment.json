@@ -1,0 +1,81 @@
+{
+  "name": "Assessment",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "batch_id": {
+      "type": "string"
+    },
+    "program_id": {
+      "type": "string"
+    },
+    "assessment_type": {
+      "type": "string",
+      "enum": [
+        "pre_assessment",
+        "post_assessment"
+      ],
+      "default": "pre_assessment"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "multiple_choice",
+        "short_answer",
+        "self_assessment",
+        "quiz",
+        "final_exam",
+        "case_study"
+      ],
+      "default": "multiple_choice"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correct_answer": {
+            "type": "string"
+          },
+          "points": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total_points": {
+      "type": "number"
+    },
+    "passing_score": {
+      "type": "number",
+      "default": 70
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "closed"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "title",
+    "batch_id"
+  ]
+}

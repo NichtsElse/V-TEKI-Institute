@@ -1,0 +1,46 @@
+{
+  "name": "Attendance",
+  "type": "object",
+  "properties": {
+    "registration_id": {
+      "type": "string"
+    },
+    "batch_id": {
+      "type": "string"
+    },
+    "participant_name": {
+      "type": "string"
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "session_title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "present",
+        "absent",
+        "late",
+        "excused"
+      ],
+      "default": "present"
+    },
+    "join_time": {
+      "type": "string"
+    },
+    "leave_time": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "registration_id",
+    "batch_id",
+    "session_date"
+  ]
+}
