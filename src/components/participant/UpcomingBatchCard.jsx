@@ -12,7 +12,6 @@ import { format, differenceInDays } from 'date-fns';
 import { appClient } from '@/api/appClient';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import UploadPaymentDialog from '@/components/shared/UploadPaymentDialog';
 import ParticipantCheckInDialog from '@/components/shared/ParticipantCheckInDialog';
 
 export default function UpcomingBatchCard({ registration, batch, inProgress }) {
@@ -140,9 +139,6 @@ export default function UpcomingBatchCard({ registration, batch, inProgress }) {
             </span>
           </div>
           <div className="flex gap-2">
-            {(registration.payment_status === 'pending' || registration.payment_status === 'waiting_payment') && (
-              <UploadPaymentDialog registrationId={registration.id} />
-            )}
             {registration.status === 'confirmed' && (registration.attendance_percentage || 0) < 100 && (
               <ParticipantCheckInDialog 
                 registrationId={registration.id} 

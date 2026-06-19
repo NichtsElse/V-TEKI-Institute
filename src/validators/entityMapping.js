@@ -1,6 +1,9 @@
 /**
- * Entity Mapping Constants
- * Maps local entity names to Supabase table names with priority levels
+ * Purpose: Map local application entity names to Supabase table names and metadata.
+ * Used by: App data adapter, schema/entity validation scripts, and validator tests.
+ * Main dependencies: None.
+ * Public/main functions: `getSupabaseTableName`, `getEntityMapping`, `getLocalEntityName`, and `getAllEntitiesSortedByPriority`.
+ * Important side effects: None.
  */
 
 const ENTITY_MAPPING = {
@@ -56,6 +59,11 @@ const ENTITY_MAPPING = {
     supabaseTable: 'assessments',
     priority: 4,
     description: 'Assessment definitions',
+  },
+  AssessmentQuestion: {
+    supabaseTable: 'assessment_questions',
+    priority: 4,
+    description: 'Assessment question definitions',
   },
   AssessmentResult: {
     supabaseTable: 'assessment_submissions',
@@ -207,7 +215,7 @@ function getAllEntitiesSortedByPriority() {
     }));
 }
 
-module.exports = {
+export {
   ENTITY_MAPPING,
   TABLE_TO_ENTITY,
   getSupabaseTableName,

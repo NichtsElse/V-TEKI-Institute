@@ -16,7 +16,8 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, industry = EXCLUDED.industr
 INSERT INTO users_profile (id, email, full_name, role, phone, status, password, created_date, organization_id, organization_name) VALUES
   ('user_admin_demo', 'admin@vteki.local', 'Demo Admin', 'academy_admin', '021-555-0001', 'active', 'admin123', '2026-01-01T08:00:00Z', NULL, NULL),
   ('user_superadmin_demo', 'superadmin@vteki.local', 'Super Admin', 'super_admin', '021-555-0002', 'active', 'superadmin123', '2026-01-01T07:00:00Z', NULL, NULL),
-  ('user_trainer_demo', 'trainer@vteki.local', 'Nadia Pratama', 'trainer', '081300000001', 'active', 'trainer123', '2026-01-03T08:00:00Z', NULL, NULL),
+  ('user_trainer_demo', 'trainer@vteki.local', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'trainer', '081300000001', 'active', 'trainer123', '2026-01-03T08:00:00Z', NULL, NULL),
+  ('user_trainer_2_demo', 'trainer2@vteki.local', 'Nadia Pratama', 'trainer', '081300000005', 'active', 'trainer123', '2026-04-01T08:00:00Z', NULL, NULL),
   ('user_trainer_rafael', 'rafael.mahendra@vteki.local', 'Rafael Mahendra', 'trainer', '081300000002', 'active', 'welcome123', '2026-01-20T08:00:00Z', NULL, NULL),
   ('user_trainer_salma', 'salma.wijaya@vteki.local', 'Salma Wijaya', 'trainer', '081300000003', 'active', 'welcome123', '2026-02-08T08:00:00Z', NULL, NULL),
   ('user_trainer_budi', 'budi.santoso@vteki.local', 'Budi Santoso', 'trainer', '081300000004', 'active', 'welcome123', '2026-03-01T08:00:00Z', NULL, NULL),
@@ -34,10 +35,11 @@ ON CONFLICT (id) DO UPDATE SET email=EXCLUDED.email, role=EXCLUDED.role, organiz
 
 -- 3. Trainers
 INSERT INTO trainers (id, full_name, email, title, expertise, experience_years, status) VALUES
-  ('trainer_nadia', 'Nadia Pratama', 'trainer@vteki.local', 'Lead AI Consultant', 'Applied AI, Automation Strategy', 9, 'active'),
-  ('trainer_rafael', 'Rafael Mahendra', 'rafael.mahendra@vteki.local', 'Data Analytics Lead', 'SQL Analytics, BI Dashboards', 11, 'active'),
-  ('trainer_salma', 'Salma Wijaya', 'salma.wijaya@vteki.local', 'Digital Transformation Advisor', 'Transformation Roadmaps', 12, 'active'),
-  ('trainer_budi', 'Budi Santoso', 'budi.santoso@vteki.local', 'Cloud Architect', 'AWS, Azure, DevOps', 10, 'active')
+  ('trainer_nadia', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'trainer@vteki.local', 'Trainer & Program Lead', 'Enterprise AI Advisory, Strategy & Transformation', 16, 'active'),
+  ('trainer_nadia_2', 'Nadia Pratama', 'trainer2@vteki.local', 'Trainer & Program Lead', 'Enterprise AI Advisory, Strategy & Transformation', 16, 'active'),
+  ('trainer_rafael', 'Rafael Mahendra', 'rafael.mahendra@vteki.local', 'Data Analytics Lead', 'SQL Analytics, BI Dashboards', 11, 'inactive'),
+  ('trainer_salma', 'Salma Wijaya', 'salma.wijaya@vteki.local', 'Digital Transformation Advisor', 'Transformation Roadmaps', 12, 'inactive'),
+  ('trainer_budi', 'Budi Santoso', 'budi.santoso@vteki.local', 'Cloud Architect', 'AWS, Azure, DevOps', 10, 'inactive')
 ON CONFLICT (id) DO UPDATE SET full_name=EXCLUDED.full_name;
 
 -- 4. Programs
@@ -51,10 +53,10 @@ ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name;
 
 -- 5. Batches
 INSERT INTO batches (id, name, program_id, trainer_id, trainer_name, program_name, start_date, end_date, status, capacity, enrolled_count) VALUES
-  ('batch_ai_foundation_july', 'Applied AI - July 2026', 'prog_ai_foundation', 'trainer_nadia', 'Nadia Pratama', 'Applied AI for Business Teams', '2026-07-08', '2026-07-24', 'open', 40, 18),
-  ('batch_data_bootcamp_aug', 'Data Bootcamp - August 2026', 'prog_data_bootcamp', 'trainer_rafael', 'Rafael Mahendra', 'Data Analytics Bootcamp', '2026-08-03', '2026-08-28', 'open', 35, 14),
-  ('batch_exec_sep', 'Exec Transformation - Sept 2026', 'prog_exec_transform', 'trainer_salma', 'Salma Wijaya', 'Executive Digital Transformation', '2026-09-10', '2026-09-12', 'open', 25, 9),
-  ('batch_cloud_may', 'Cloud Architecture - May 2026', 'prog_cloud_arch', 'trainer_budi', 'Budi Santoso', 'Cloud Architecture Fundamentals', '2026-05-01', '2026-05-20', 'closed', 50, 48)
+  ('batch_ai_foundation_july', 'Applied AI - July 2026', 'prog_ai_foundation', 'trainer_nadia', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'Applied AI for Business Teams', '2026-07-08', '2026-07-24', 'open', 40, 18),
+  ('batch_data_bootcamp_aug', 'Data Bootcamp - August 2026', 'prog_data_bootcamp', 'trainer_nadia', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'Data Analytics Bootcamp', '2026-08-03', '2026-08-28', 'open', 35, 14),
+  ('batch_exec_sep', 'Exec Transformation - Sept 2026', 'prog_exec_transform', 'trainer_nadia', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'Executive Digital Transformation', '2026-09-10', '2026-09-12', 'open', 25, 9),
+  ('batch_cloud_may', 'Cloud Architecture - May 2026', 'prog_cloud_arch', 'trainer_nadia', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 'Cloud Architecture Fundamentals', '2026-05-01', '2026-05-20', 'closed', 50, 48)
 ON CONFLICT (id) DO UPDATE SET status=EXCLUDED.status;
 
 -- 6. Invoices
@@ -115,6 +117,6 @@ ON CONFLICT (id) DO UPDATE SET score=EXCLUDED.score;
 
 -- 14. Feedback
 INSERT INTO feedback (id, registration_id, batch_id, batch_name, participant_name, participant_email, program_name, trainer_name, trainer_rating, material_rating, program_rating, satisfaction_score, comments) VALUES
-  ('fb_001', 'reg_004', 'batch_cloud_may', 'Cloud Architecture - May 2026', 'Cindy Wijaya', 'cindy.wijaya@example.com', 'Cloud Architecture Fundamentals', 'Budi Santoso', 5, 5, 5, 5, 'Great session on scalable cloud patterns.'),
-  ('fb_002', 'reg_005', 'batch_cloud_may', 'Cloud Architecture - May 2026', 'Dimas Pratama', 'dimas.pratama@example.com', 'Cloud Architecture Fundamentals', 'Budi Santoso', 4, 4, 4, 4, 'Very insightful overall.')
+    ('fb_001', 'reg_demo_001', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Aulia Ramadhan', 'participant@vteki.local', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 5, 4, 5, 5, 'Very practical program. The automation workshop and governance session were especially useful.'),
+    ('fb_002', 'reg_demo_005', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Meylani Putri', 'meylani.putri@example.com', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 4, 5, 4, 4, 'Good balance between business examples and practical exercises for team adoption.')
 ON CONFLICT (id) DO UPDATE SET comments=EXCLUDED.comments;

@@ -10,6 +10,14 @@ export const resolveTrainerRecord = (user, trainers = []) => {
     return null;
   }
 
+  if (user.email?.toLowerCase() === 'trainer@vteki.local') {
+    return (
+      trainers.find((trainer) => trainer.email?.toLowerCase() === 'trainer@vteki.local') ||
+      trainers.find((trainer) => trainer.full_name === 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE') ||
+      null
+    );
+  }
+
   return (
     trainers.find((trainer) => trainer.id === user.id) ||
     trainers.find((trainer) => trainer.email?.toLowerCase() === user.email?.toLowerCase()) ||

@@ -1,14 +1,20 @@
 /**
- * Unit tests for Schema Reader Module
- * Tests parsing of supabase/schema.sql file
+ * Purpose: Verify Supabase schema parsing helpers against the active fixed schema.
+ * Used by: Vitest baseline and migration validation.
+ * Main dependencies: Vitest, `schemaReader`, and `supabase/schema_fixed.sql`.
+ * Public/main functions: Schema reader test suites.
+ * Important side effects: Reads schema fixture files from disk.
  */
 
-const {
+import { describe, expect, it } from 'vitest';
+import {
   readAndParseSchema,
   parseTableDefinition,
   parseColumnDefinition,
   parseEnumValuesFromConstraint,
-} = require('../schemaReader');
+} from '../schemaReader.js';
+
+const schemaPath = 'supabase/schema_fixed.sql';
 
 describe('Schema Reader Module', () => {
   describe('parseEnumValuesFromConstraint', () => {
@@ -100,15 +106,15 @@ describe('Schema Reader Module', () => {
   });
 
   describe('readAndParseSchema', () => {
-    it('should read and parse supabase/schema.sql', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+    it('should read and parse supabase/schema_fixed.sql', () => {
+      const schema = readAndParseSchema(schemaPath);
       expect(schema).toBeDefined();
       expect(schema.tables).toBeDefined();
       expect(typeof schema.tables).toBe('object');
     });
 
     it('should parse organizations table', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       expect(schema.tables.organizations).toBeDefined();
       expect(schema.tables.organizations.columns).toBeDefined();
       expect(schema.tables.organizations.columns.id).toBeDefined();
@@ -116,7 +122,7 @@ describe('Schema Reader Module', () => {
     });
 
     it('should parse programs table with correct columns', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const programsTable = schema.tables.programs;
       expect(programsTable).toBeDefined();
       expect(programsTable.columns.id).toBeDefined();
@@ -124,35 +130,33 @@ describe('Schema Reader Module', () => {
       expect(programsTable.columns.code).toBeDefined();
     });
 
-    it('should extract enum values from programs.status column', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+    it('should leave programs.status enum empty when schema has no CHECK enum', () => {
+      const schema = readAndParseSchema(schemaPath);
       const statusColumn = schema.tables.programs.columns.status;
-      expect(statusColumn.enums.length).toBeGreaterThan(0);
-      expect(statusColumn.enums).toContain('draft');
-      expect(statusColumn.enums).toContain('published');
+      expect(statusColumn.enums).toEqual([]);
     });
 
     it('should mark id columns as NOT NULL', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const orgId = schema.tables.organizations.columns.id;
       expect(orgId.nullable).toBe(false);
     });
 
     it('should mark name columns in organizations as NOT NULL', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const orgName = schema.tables.organizations.columns.name;
       expect(orgName.nullable).toBe(false);
     });
 
     it('should parse foreign key references in batches table', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const programIdColumn = schema.tables.batches.columns.program_id;
       expect(programIdColumn.isFK).toBe(true);
       expect(programIdColumn.references).toBe('programs.id');
     });
 
     it('should parse users_profile table', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const usersTable = schema.tables.users_profile;
       expect(usersTable).toBeDefined();
       expect(usersTable.columns.role).toBeDefined();
@@ -163,7 +167,7 @@ describe('Schema Reader Module', () => {
     });
 
     it('should parse enrollments table with all expected columns', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const enrollmentsTable = schema.tables.enrollments;
       expect(enrollmentsTable).toBeDefined();
       expect(enrollmentsTable.columns.id).toBeDefined();
@@ -172,14 +176,14 @@ describe('Schema Reader Module', () => {
       expect(enrollmentsTable.columns.completion_status).toBeDefined();
     });
 
-    it('should extract payment_status enum values', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+    it('should leave payment_status enum empty when schema has no CHECK enum', () => {
+      const schema = readAndParseSchema(schemaPath);
       const paymentStatusColumn = schema.tables.enrollments.columns.payment_status;
-      expect(paymentStatusColumn.enums).toEqual(['unpaid', 'verifying', 'paid', 'failed']);
+      expect(paymentStatusColumn.enums).toEqual([]);
     });
 
     it('should parse certificates table', () => {
-      const schema = readAndParseSchema('supabase/schema.sql');
+      const schema = readAndParseSchema(schemaPath);
       const certificatesTable = schema.tables.certificates;
       expect(certificatesTable).toBeDefined();
       expect(certificatesTable.columns.registration_id).toBeDefined();

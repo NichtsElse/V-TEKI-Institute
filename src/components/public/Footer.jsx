@@ -9,7 +9,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
-  const logoSrc = '/vteki-logo-front.png';
+  const logoSrc = '/v-teki_institute.jpeg';
 
   return (
     <footer className="border-t border-border bg-muted/40">

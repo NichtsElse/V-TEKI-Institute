@@ -1,9 +1,9 @@
 /**
- * Purpose: Render the manual email/password login screen for local demo accounts.
+ * Purpose: Render the email/password login screen for Supabase users, including seeded demo accounts and password visibility toggle.
  * Used by: Public auth route `/login`.
  * Main dependencies: appClient auth helpers, shadcn form controls, and AuthLayout.
  * Public/main functions: Default `Login` page export.
- * Important side effects: Creates an auth session and redirects users after successful sign-in.
+ * Important side effects: Creates a Supabase auth session and redirects users after successful sign-in.
  */
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -11,13 +11,14 @@ import { appClient } from "@/api/appClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
@@ -79,23 +80,7 @@ export default function Login() {
         </div>
       )}
 
-      <div className="mb-4 rounded-xl border border-border bg-muted/40 p-4 text-sm">
-        <p className="font-medium mb-2">Login flow</p>
-        <div className="space-y-1 text-muted-foreground">
-          <p>Use the local account email and password shown below.</p>
-          <p>Role access follows the local demo account after login.</p>
-        </div>
-      </div>
 
-      <div className="mb-4 rounded-xl border border-border bg-background p-4 text-sm">
-        <p className="font-medium mb-2">Quick access accounts</p>
-        <div className="space-y-1 text-muted-foreground">
-          <p><span className="font-medium text-foreground">Admin:</span> admin@vteki.local / admin123</p>
-          <p><span className="font-medium text-foreground">Trainer:</span> trainer@vteki.local / trainer123</p>
-          <p><span className="font-medium text-foreground">Corporate PIC:</span> corporate@vteki.local / corporate123</p>
-          <p><span className="font-medium text-foreground">Participant:</span> participant@vteki.local / participant123</p>
-        </div>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -126,7 +111,7 @@ export default function Login() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Enter your password"
               value={password}
@@ -134,6 +119,14 @@ export default function Login() {
               className="pl-10 h-12"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>

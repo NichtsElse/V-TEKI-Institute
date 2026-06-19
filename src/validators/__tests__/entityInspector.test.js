@@ -1,14 +1,18 @@
 /**
- * Unit tests for Entity Inspector Module
- * Tests extraction of entities from appClient.js
+ * Purpose: Verify entity inspection and field type inference behavior.
+ * Used by: Vitest baseline and migration validation.
+ * Main dependencies: Vitest, `entityInspector`, `entityMapping`, and `src/api/appClient.js`.
+ * Public/main functions: Entity inspector test suites.
+ * Important side effects: Reads appClient seed data from disk.
  */
 
-const {
+import { describe, expect, it } from 'vitest';
+import {
   buildEntityRegistry,
   inferTypeFromValue,
   inferFieldType,
   isForeignKeyField,
-} = require('../entityInspector');
+} from '../entityInspector.js';
 
 describe('Entity Inspector Module', () => {
   describe('inferTypeFromValue', () => {

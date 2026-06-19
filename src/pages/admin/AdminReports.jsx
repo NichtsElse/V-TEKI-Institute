@@ -1,6 +1,13 @@
+/**
+ * Purpose: Render admin reporting summaries and revenue/participant charts.
+ * Used by: Admin reports route/page.
+ * Main dependencies: React Query, appClient entity APIs, shadcn cards, lucide icons, and Recharts.
+ * Public/main functions: Default `AdminReports` page export.
+ * Important side effects: Reads program, registration, payment, and certificate records through appClient.
+ */
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, BookOpen, Award, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, BookOpen, Award, DollarSign } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { appClient } from '@/api/appClient';
 import { useQuery } from '@tanstack/react-query';

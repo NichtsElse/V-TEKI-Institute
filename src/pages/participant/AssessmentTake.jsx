@@ -101,17 +101,12 @@ export default function AssessmentTake() {
       const percentage = Math.round((correctCount / questions.length) * 100);
       const passed = percentage >= (assessment?.passing_score || 70);
 
-      // Check for existing submissions and delete them to allow retake
+      // Check for existing submissions and update them to allow retake without hitting the unique pair constraint.
       const existingResults = await appClient.entities.AssessmentResult.filter({ 
         assessment_id: assessmentId, 
         registration_id: currentRegistration.id 
       });
-      for (const oldResult of existingResults) {
-        await appClient.entities.AssessmentResult.delete(oldResult.id);
-      }
-
-      // Create assessment result
-      const result = await appClient.entities.AssessmentResult.create({
+      const submissionPayload = {
         assessment_id: assessmentId,
         registration_id: currentRegistration.id,
         participant_email: user?.email,
@@ -123,7 +118,11 @@ export default function AssessmentTake() {
         status: 'submitted',
         submission_date: new Date().toISOString(),
         answers: answerDetails,
-      });
+      };
+
+      const result = existingResults[0]
+        ? await appClient.entities.AssessmentResult.update(existingResults[0].id, submissionPayload)
+        : await appClient.entities.AssessmentResult.create(submissionPayload);
 
       // Update registration status
       if (assessment?.assessment_type === 'pre_assessment') {

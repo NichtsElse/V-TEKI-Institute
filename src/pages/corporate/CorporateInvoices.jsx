@@ -13,7 +13,6 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { resolveCorporateOrganizationName } from '@/domain/corporate/scope';
-import UploadPaymentDialog from '@/components/shared/UploadPaymentDialog';
 
 export default function CorporateInvoices() {
   const { user } = useAuth();
@@ -36,9 +35,6 @@ export default function CorporateInvoices() {
     { 
       header: 'Action', 
       cell: (row) => {
-        if (row.status === 'pending' || row.status === 'waiting_payment') {
-          return <UploadPaymentDialog invoiceId={row.id} registrationId={row.registration_id} amount={row.amount} />;
-        }
         if (row.status === 'pending_verification') {
           return <span className="text-xs text-muted-foreground italic">Verifying...</span>;
         }

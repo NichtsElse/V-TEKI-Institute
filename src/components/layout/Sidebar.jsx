@@ -94,7 +94,7 @@ export default function Sidebar({ user }) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const logoSrc = '/vteki-logo.png';
+  const logoSrc = '/v-teki_institute.jpeg';
   const role = user?.role || 'participant';
   const items = navGroups[role] || navGroups.participant;
 

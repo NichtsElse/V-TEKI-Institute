@@ -1,7 +1,7 @@
 /**
  * Purpose: Review, create, and verify invoice payments for the local MVP admin flow.
  * Used by: Admin route `/admin/payments`.
- * Main dependencies: Local app client, React Query mutations, shared table components, and shadcn dialog controls.
+ * Main dependencies: Local app client, React Query mutations, shared table components, dialog controls, and shadcn form inputs.
  * Public/main functions: Default `AdminPayments` page export.
  * Important side effects: Creates local invoice records, updates payment verification status, and writes admin notes.
  */
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle, Loader2, Plus } from 'lucide-react';
+import { CheckCircle, Loader2, Plus, Pencil } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 export default function AdminPayments() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [createForm, setCreateForm] = useState({
     registration_id: '',
     invoice_number: '',
@@ -136,6 +137,16 @@ export default function AdminPayments() {
       payment_date: payment.payment_date || new Date().toISOString().split('T')[0],
       registration_status: 'confirmed', // Explicitly note that registration should be confirmed
     });
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
+
+  const editPayment = (payment) => {
+    setSelected({
+      ...payment,
+      registration_status: payment.registration_status || 'confirmed',
+    });
+    setIsEditing(true);
     setDialogOpen(true);
   };
 
@@ -149,10 +160,17 @@ export default function AdminPayments() {
     { header: 'Method', cell: (r) => <span className="text-xs capitalize">{r.payment_method?.replace(/_/g, ' ') || '-'}</span> },
     { header: 'Date', cell: (r) => r.payment_date ? format(new Date(r.payment_date), 'MMM d, yyyy') : '-' },
     { header: 'Payment', cell: (r) => <StatusBadge status={r.status} /> },
-    { header: '', cell: (r) => (r.status === 'pending' || r.status === 'pending_verification') && (
-      <Button variant="ghost" size="sm" className="h-7 text-xs text-success" onClick={(e) => { e.stopPropagation(); verifyPayment(r); }}>
-        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verify
-      </Button>
+    { header: '', cell: (r) => (
+      <div className="flex items-center justify-end gap-1">
+        {(r.status === 'pending' || r.status === 'pending_verification') && (
+          <Button variant="ghost" size="sm" className="h-7 text-xs text-success" onClick={(e) => { e.stopPropagation(); verifyPayment(r); }}>
+            <CheckCircle className="w-3.5 h-3.5 mr-1" /> Verify
+          </Button>
+        )}
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); editPayment(r); }}>
+          <Pencil className="w-3.5 h-3.5" />
+        </Button>
+      </div>
     )},
   ];
 
@@ -298,7 +316,7 @@ export default function AdminPayments() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Verify Invoice Payment</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{isEditing ? 'Edit Invoice Payment' : 'Verify Invoice Payment'}</DialogTitle></DialogHeader>
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -333,7 +351,7 @@ export default function AdminPayments() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={() => updateMutation.mutate({ id: selected.id, data: { status: selected.status, invoice_status: selected.invoice_status, notes: selected.notes, verified_date: selected.verified_date, payment_date: selected.payment_date } })} className="bg-secondary hover:bg-secondary/90 text-white">
-              {updateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Confirm
+              {updateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} {isEditing ? 'Update' : 'Confirm'}
             </Button>
           </DialogFooter>
         </DialogContent>

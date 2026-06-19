@@ -1,18 +1,17 @@
 /**
- * Purpose: Render the Supabase registration flow with OTP confirmation.
+ * Purpose: Render the Supabase registration flow with password visibility toggles and email confirmation link verification.
  * Used by: Public auth route `/register`.
- * Main dependencies: appClient auth helpers, shadcn form controls, OTP input, and AuthLayout.
+ * Main dependencies: appClient auth helpers, shadcn form controls, and AuthLayout.
  * Public/main functions: Default `Register` page export.
- * Important side effects: Creates a Supabase auth account, sends/resends OTP, and redirects after verification.
+ * Important side effects: Creates a Supabase auth account, sends/resends confirmation links, stores a pending password, and redirects after verification.
  */
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { appClient } from "@/api/appClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Input } from "@/components/ui/input";
+import { UserPlus, Mail, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
@@ -21,10 +20,11 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
+  const [linkSent, setLinkSent] = useState(false);
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/";
 
@@ -38,25 +38,9 @@ export default function Register() {
     setLoading(true);
     try {
       await appClient.auth.register({ email, password });
-      setShowOtp(true);
+      setLinkSent(true);
     } catch (err) {
       setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const result = await appClient.auth.verifyOtp({ email, otpCode, type: 'signup' });
-      if (result?.access_token) {
-        appClient.auth.setToken(result.access_token);
-      }
-      window.location.href = redirectUrl;
-    } catch (err) {
-      setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
     }
@@ -67,11 +51,11 @@ export default function Register() {
     try {
       await appClient.auth.resendOtp(email, 'signup');
       toast({
-        title: "Code sent",
-        description: "Use any 6-digit code in this local MVP preview.",
+        title: "Link sent",
+        description: "Check your email for the latest Supabase confirmation link.",
       });
     } catch (err) {
-      setError(err.message || "Failed to resend code");
+      setError(err.message || "Failed to resend link");
     }
   };
 
@@ -79,12 +63,12 @@ export default function Register() {
     appClient.auth.loginWithProvider("google", redirectUrl);
   };
 
-  if (showOtp) {
+  if (linkSent) {
     return (
       <AuthLayout
-        icon={Mail}
-        title="Verify your email"
-        subtitle={`We sent a code to ${email}`}
+        icon={CheckCircle2}
+        title="Check your email"
+        subtitle={`We sent a confirmation link to ${email}`}
       >
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
@@ -93,43 +77,11 @@ export default function Register() {
         )}
 
         <div className="mb-4 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          Supabase will send the verification code to your email after sign-up.
+          Open the confirmation link in your inbox to activate your account.
         </div>
 
-        <div className="flex justify-center mb-6">
-          <InputOTP
-            maxLength={6}
-            value={otpCode}
-            onChange={setOtpCode}
-            autoFocus
-            autoComplete="one-time-code"
-          >
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-              <InputOTPSlot index={3} />
-              <InputOTPSlot index={4} />
-              <InputOTPSlot index={5} />
-            </InputOTPGroup>
-          </InputOTP>
-        </div>
-        <Button
-          className="w-full h-12 font-medium"
-          onClick={handleVerify}
-          disabled={loading || otpCode.length < 6}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Verifying...
-            </>
-          ) : (
-            "Verify"
-          )}
-        </Button>
         <p className="text-center text-sm text-muted-foreground mt-4">
-          Didn't receive the code?{" "}
+          Didn't receive the link?{" "}
           <button onClick={handleResend} className="text-primary font-medium hover:underline">
             Resend
           </button>
@@ -142,7 +94,7 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="Create your account"
-      subtitle="Sign up to get started"
+      subtitle="Sign up with password and confirm via email link"
       footer={
         <>
           Already have an account?{" "}
@@ -177,7 +129,7 @@ export default function Register() {
       )}
 
       <div className="mb-4 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-        The account is created in Supabase and verified by email OTP before access is granted.
+        Enter your email and password. We will send a confirmation link to verify your account.
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -201,33 +153,47 @@ export default function Register() {
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               placeholder="Create a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="h-12 pr-10"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
-              id="confirm"
-              type="password"
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
               placeholder="Repeat your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-12"
+              className="h-12 pr-10"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((value) => !value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+            >
+              {showConfirmPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>

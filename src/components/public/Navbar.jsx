@@ -32,7 +32,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const dashboardPath = appClient.getRoleHomePath(user?.role);
-  const logoSrc = '/vteki-logo-front.png';
+  const logoSrc = '/v-teki_institute.jpeg';
 
   const closeMobileMenu = () => setMobileOpen(false);
 

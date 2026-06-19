@@ -41,7 +41,7 @@ export async function generateCertificatePDF(cert) {
 
   let logoEmbedded = false;
   try {
-    const logoResponse = await fetch('/vteki-logo.png');
+    const logoResponse = await fetch('/v-teki_institute.jpeg');
     if (logoResponse.ok) {
       const logoBlob = await logoResponse.blob();
       const logoBase64 = await new Promise((resolve) => {

@@ -1,9 +1,9 @@
 /**
- * Purpose: Manage delivery batches, schedules, and trainer assignments for the local MVP admin flow.
+ * Purpose: Manage delivery batches, schedules, and trainer assignments for the admin dashboard.
  * Used by: Admin route `/admin/batches`.
- * Main dependencies: Local app client, React Query mutations, shared data table components, and router navigation.
+ * Main dependencies: App client entity APIs, React Query mutations, shared data table components, and router navigation.
  * Public/main functions: Default `AdminBatches` page export.
- * Important side effects: Creates, updates, and deletes local batch records.
+ * Important side effects: Reads, creates, updates, and deletes batch records in the active data store.
  */
 import React, { useState } from 'react';
 import { appClient } from '@/api/appClient';
@@ -21,7 +21,7 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
-const emptyBatch = { name: '', program_id: '', start_date: '', end_date: '', registration_deadline: '', capacity: 30, trainer_id: '', trainer_name: '', venue: '', meeting_link: '', status: 'draft' };
+const emptyBatch = { name: '', program_id: '', start_date: '', end_date: '', capacity: 30, trainer_id: '', trainer_name: '', venue: '', meeting_link: '', status: 'draft' };
 
 export default function AdminBatches() {
   const navigate = useNavigate();
@@ -114,7 +114,6 @@ export default function AdminBatches() {
             </div>
             <div><Label>Start Date</Label><Input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} /></div>
             <div><Label>End Date</Label><Input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} /></div>
-            <div><Label>Registration Deadline</Label><Input type="date" value={form.registration_deadline} onChange={e => setForm({...form, registration_deadline: e.target.value})} /></div>
             <div><Label>Capacity</Label><Input type="number" value={form.capacity} onChange={e => setForm({...form, capacity: parseInt(e.target.value) || 0})} /></div>
             <div className="sm:col-span-2"><Label>Trainer</Label>
               <Select value={form.trainer_id} onValueChange={v => setForm({...form, trainer_id: v})}><SelectTrigger><SelectValue placeholder="Select trainer" /></SelectTrigger>

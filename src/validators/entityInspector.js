@@ -1,12 +1,14 @@
 /**
- * Entity Inspector Module
- * Reads entity mapping metadata and Supabase schema references to build EntityRegistry.
- * Infers field types from schema-adjacent sample data and identifies relationships.
+ * Purpose: Inspect local seed entities and build metadata for Supabase entity validation.
+ * Used by: Validator tests, migration checks, and data model review scripts.
+ * Main dependencies: Node fs/path modules and `entityMapping` helpers.
+ * Public/main functions: `readAndInspectEntities`, `buildEntityRegistry`, `getEntityRegistry`, and type inference helpers.
+ * Important side effects: Reads source files from disk and caches entity registry metadata in memory.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { getSupabaseTableName, getEntityMapping } = require('./entityMapping');
+import fs from 'node:fs';
+import path from 'node:path';
+import { getSupabaseTableName, getAllEntitiesSortedByPriority } from './entityMapping.js';
 
 /**
  * Infer field type from value
@@ -78,7 +80,7 @@ function inferFieldType(value) {
  */
 function isForeignKeyField(fieldName, fieldValue) {
   // Common FK naming patterns
-  if (/_id$/i.test(fieldName)) {
+  if (/_id$/i.test(fieldName) || /Id$/.test(fieldName)) {
     return true;
   }
 
@@ -203,13 +205,12 @@ function readAndInspectEntities(filePath = 'src/api/appClient.js') {
  */
 function buildEntityRegistry(appClientPath = 'src/api/appClient.js') {
   try {
-    // Read the appClient file so the function signature stays compatible.
-    path.resolve(appClientPath);
-    const entityRegistry = {};
-    const mappings = getEntityMapping();
-    Object.entries(mappings).forEach(([entityName, mapping]) => {
-      if (!mapping?.supabaseTable) return;
-      entityRegistry[entityName] = {
+    const inspectedEntities = readAndInspectEntities(appClientPath);
+    const entityRegistry = { ...inspectedEntities };
+
+    getAllEntitiesSortedByPriority().forEach((mapping) => {
+      if (!mapping?.localName || !mapping?.supabaseTable || entityRegistry[mapping.localName]) return;
+      entityRegistry[mapping.localName] = {
         supabaseTable: mapping.supabaseTable,
         fields: {},
         recordCount: 0,
@@ -238,7 +239,7 @@ function getEntityRegistry(appClientPath = 'src/api/appClient.js', forceRefresh 
   return cachedEntityRegistry;
 }
 
-module.exports = {
+export {
   readAndInspectEntities,
   buildEntityRegistry,
   getEntityRegistry,

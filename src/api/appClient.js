@@ -7,7 +7,7 @@
  */
 import { getRoleHomePath } from '@/domain/auth/roleConfig';
 import { isCertificateEligible } from '@/domain/certificates/eligibility';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, isSupabaseStrictMode } from '@/lib/supabase';
 
 const memoryStorage = new Map();
 const isBrowser = typeof window !== 'undefined';
@@ -44,6 +44,8 @@ const CACHE_PREFIX = 'vteki.supabase.cache';
 
 const nowIso = () => new Date().toISOString();
 const createId = (prefix) => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+const DEMO_TRAINER_EMAIL = 'trainer@vteki.local';
+const DEMO_TRAINER_NAME = 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE';
 const getCacheKey = (name) => `${CACHE_PREFIX}.${name}`;
 const getCacheItem = (name) => {
   const raw = storage.getItem(getCacheKey(name));
@@ -140,14 +142,14 @@ const defaultDatabase = {
   Trainer: [
     {
       id: 'trainer_nadia',
-      full_name: 'Nadia Pratama',
+      full_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       email: 'trainer@vteki.local',
-      title: 'Lead AI Consultant',
-      expertise: 'Applied AI, Automation Strategy, MLOps',
-      experience_years: 9,
-      bio: 'Nadia helps organizations turn AI use cases into working internal products and repeatable operating practices.',
+      title: 'Trainer & Program Lead',
+      expertise: 'Enterprise AI Advisory, Strategy & Transformation',
+      experience_years: 16,
+      bio: 'Dr. Idha Kristiana leads V-TEKI training delivery, program coordination, and strategic transformation across AI and digital capability tracks.',
       profile_picture_url: '',
-      linkedin_url: 'https://www.linkedin.com/in/nadia-pratama-demo',
+      linkedin_url: 'https://www.linkedin.com/in/idha-kristiana-demo',
       status: 'active',
       created_date: '2026-01-12T08:00:00.000Z',
     },
@@ -161,7 +163,7 @@ const defaultDatabase = {
       bio: 'Rafael has led analytics enablement programs for cross-functional teams in education, services, and enterprise operations.',
       profile_picture_url: '',
       linkedin_url: 'https://www.linkedin.com/in/rafael-mahendra-demo',
-      status: 'active',
+      status: 'inactive',
       created_date: '2026-01-20T08:00:00.000Z',
     },
     {
@@ -174,7 +176,7 @@ const defaultDatabase = {
       bio: 'Salma works with leadership teams to shape transformation roadmaps, governance models, and internal capability plans.',
       profile_picture_url: '',
       linkedin_url: 'https://www.linkedin.com/in/salma-wijaya-demo',
-      status: 'active',
+      status: 'inactive',
       created_date: '2026-02-08T08:00:00.000Z',
     },
   ],
@@ -184,7 +186,7 @@ const defaultDatabase = {
       name: 'Applied AI for Business Teams - July 2026',
       program_id: 'prog_ai_foundation',
       trainer_id: 'trainer_nadia',
-      trainer_name: 'Nadia Pratama',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       program_name: 'Applied AI for Business Teams',
       start_date: '2026-07-08',
       end_date: '2026-07-24',
@@ -204,8 +206,8 @@ const defaultDatabase = {
       id: 'batch_data_bootcamp_aug',
       name: 'Data Analytics Bootcamp - August 2026',
       program_id: 'prog_data_bootcamp',
-      trainer_id: 'trainer_rafael',
-      trainer_name: 'Rafael Mahendra',
+      trainer_id: 'trainer_nadia',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       program_name: 'Data Analytics Bootcamp',
       start_date: '2026-08-03',
       end_date: '2026-08-28',
@@ -224,8 +226,8 @@ const defaultDatabase = {
       id: 'batch_exec_sep',
       name: 'Executive Digital Transformation Strategy - September 2026',
       program_id: 'prog_exec_transform',
-      trainer_id: 'trainer_salma',
-      trainer_name: 'Salma Wijaya',
+      trainer_id: 'trainer_nadia',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       program_name: 'Executive Digital Transformation Strategy',
       start_date: '2026-09-10',
       end_date: '2026-09-12',
@@ -251,7 +253,7 @@ const defaultDatabase = {
       program_name: 'Applied AI for Business Teams',
       program_code: 'AIBT-101',
       batch_name: 'Applied AI for Business Teams - July 2026',
-      trainer_name: 'Nadia Pratama',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       completion_date: '2026-07-24',
       verification_status: 'valid',
       score: 88,
@@ -266,7 +268,7 @@ const defaultDatabase = {
       program_name: 'Data Analytics Bootcamp',
       program_code: 'DAB-201',
       batch_name: 'Data Analytics Bootcamp - August 2026',
-      trainer_name: 'Rafael Mahendra',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       completion_date: '2026-08-28',
       verification_status: 'valid',
       score: 91,
@@ -281,7 +283,7 @@ const defaultDatabase = {
       program_name: 'Executive Digital Transformation Strategy',
       program_code: 'EDTS-301',
       batch_name: 'Executive Digital Transformation Strategy - September 2026',
-      trainer_name: 'Salma Wijaya',
+      trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       completion_date: '2026-09-12',
       verification_status: 'valid',
       score: 95,
@@ -986,7 +988,7 @@ const defaultDatabase = {
       participant_name: 'Aulia Ramadhan',
       participant_email: 'participant@vteki.local',
       program_name: 'Applied AI for Business Teams',
-      trainer_name: 'Nadia Pratama',
+        trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       trainer_rating: 5,
       material_rating: 4,
       program_rating: 5,
@@ -1002,7 +1004,7 @@ const defaultDatabase = {
       participant_name: 'Meylani Putri',
       participant_email: 'meylani.putri@example.com',
       program_name: 'Applied AI for Business Teams',
-      trainer_name: 'Nadia Pratama',
+        trainer_name: 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE',
       trainer_rating: 4,
       material_rating: 5,
       program_rating: 4,
@@ -1055,7 +1057,7 @@ const defaultDatabase = {
     {
       id: 'user_trainer_demo',
       email: 'trainer@vteki.local',
-      full_name: 'Nadia Pratama',
+      full_name: 'Idha Kristiana',
       role: 'trainer',
       phone: '081300000001',
       status: 'active',
@@ -1093,7 +1095,12 @@ const mergeSeededDatabase = (db) => {
 
   Object.entries(defaultDatabase).forEach(([entityName, defaultItems]) => {
     const existingItems = Array.isArray(merged[entityName]) ? merged[entityName] : [];
-    const defaultItemsById = new Map(defaultItems.map((item) => [item?.id, item]));
+    const defaultItemsById = new Map();
+    defaultItems.forEach((item) => {
+      if (item?.id) {
+        defaultItemsById.set(item.id, item);
+      }
+    });
     const mergedExistingItems = existingItems.map((item) => {
       const defaultItem = item?.id ? defaultItemsById.get(item.id) : null;
       return defaultItem ? { ...clone(defaultItem), ...item } : item;
@@ -1159,6 +1166,9 @@ const syncSupabaseSeed = async () => {
 };
 
 const loadDatabase = () => {
+  if (isSupabaseConfigured() && isSupabaseStrictMode()) {
+    return clone(defaultDatabase);
+  }
   const currentSeedVersion = storage.getItem(STORAGE_KEYS.seedVersion);
   const raw = storage.getItem(STORAGE_KEYS.db);
   if (!raw || currentSeedVersion !== SEED_VERSION) {
@@ -1250,13 +1260,16 @@ const tableMap = {
   Payment: 'payments',
   Invoice: 'invoices',
   Assessment: 'assessments',
+  AssessmentQuestion: 'assessment_questions',
   AssessmentResult: 'assessment_submissions',
   AttendanceSession: 'attendance_sessions',
   AttendanceRecord: 'attendance_records',
+  Attendance: 'attendance_records',
   Feedback: 'feedback',
   Certificate: 'certificates',
   Trainer: 'trainers',
   Organization: 'organizations',
+  CorporateRegistration: 'enrollments',
 };
 
 const createEntityApi = (entityName) => {
@@ -1336,8 +1349,28 @@ const createEntityApi = (entityName) => {
     async create(data) {
       if (isSupabaseConfigured()) {
         await ensureSupabaseSeeded();
-        const { data: record, error } = await supabase.from(tableName).insert(data).select().single();
-        if (error) throw error;
+        const recordToInsert = {
+          id: data.id || createId(entityName.toLowerCase()),
+          created_date: data.created_date || nowIso(),
+          ...data,
+        };
+        const { data: insertedRows, error } = await supabase.from(tableName).insert(recordToInsert).select();
+        if (error) {
+          console.error('[V-TEKI] Supabase create failed', {
+            entityName,
+            tableName,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            recordToInsert,
+          });
+          throw error;
+        }
+        const record = Array.isArray(insertedRows) ? insertedRows[0] : insertedRows;
+        if (!record) {
+          throw new Error(`Supabase create returned no rows for ${entityName}`);
+        }
         const cached = getCacheItem(cacheName) || [];
         cacheWrite([...cached.filter((item) => item.id !== record.id), record]);
         return record;
@@ -1350,8 +1383,24 @@ const createEntityApi = (entityName) => {
     async update(id, data) {
       if (isSupabaseConfigured()) {
         await ensureSupabaseSeeded();
-        const { data: updated, error } = await supabase.from(tableName).update(data).eq('id', id).select().single();
-        if (error) throw error;
+        const { data: updatedRows, error } = await supabase.from(tableName).update(data).eq('id', id).select();
+        if (error) {
+          console.error('[V-TEKI] Supabase update failed', {
+            entityName,
+            tableName,
+            id,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            data,
+          });
+          throw error;
+        }
+        const updated = Array.isArray(updatedRows) ? updatedRows[0] : updatedRows;
+        if (!updated) {
+          throw new Error(`Supabase update returned no rows for ${entityName}`);
+        }
         const cached = getCacheItem(cacheName) || [];
         cacheWrite(cached.map((item) => (item.id === id ? updated : item)));
         return updated;
@@ -1370,7 +1419,18 @@ const createEntityApi = (entityName) => {
       if (isSupabaseConfigured()) {
         await ensureSupabaseSeeded();
         const { error } = await supabase.from(tableName).delete().eq('id', id);
-        if (error) throw error;
+        if (error) {
+          console.error('[V-TEKI] Supabase delete failed', {
+            entityName,
+            tableName,
+            id,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          });
+          throw error;
+        }
         const cached = getCacheItem(cacheName) || [];
         cacheWrite(cached.filter((item) => item.id !== id));
         return { success: true };
@@ -1417,25 +1477,148 @@ const findLocalUserByCredentials = (email, password) => {
   ) ?? null;
 };
 
-const shouldUseLocalDemoAuth = (email) => email.toLowerCase().endsWith('@vteki.local');
+const shouldUseLocalFallback = () => !isSupabaseConfigured();
 
-const fetchUserProfile = async (userId) => {
+const shouldUseSupabaseAuth = () => isSupabaseConfigured();
+
+const createSupabaseAuthSession = async (email, password, pendingUser = {}) => {
+  const signInResult = await supabase.auth.signInWithPassword({ email, password });
+  if (!signInResult.error && signInResult.data?.user) {
+    const profile = await ensureSupabaseUserProfile(signInResult.data.user, pendingUser);
+    return toAppUser(signInResult.data.user, profile);
+  }
+
+  const authErrorMessage = signInResult.error?.message || '';
+  const shouldPromptRegistration =
+    /invalid login credentials|email not confirmed|user not found/i.test(authErrorMessage);
+
+  if (shouldPromptRegistration) {
+    throw new Error(authErrorMessage || 'Unable to sign in with Supabase Auth.');
+  }
+
+  throw signInResult.error;
+};
+
+const getDemoTrainerUser = () => getCollection('User').find((entry) => entry.email?.toLowerCase() === DEMO_TRAINER_EMAIL) || null;
+
+const fetchUserProfile = async (userId, email) => {
   const { data: profile, error } = await supabase.from('users_profile').select('*').eq('id', userId).maybeSingle();
   if (error) throw error;
-  return profile;
+  if (profile || !email) return profile;
+
+  const { data: emailProfile, error: emailError } = await supabase
+    .from('users_profile')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle();
+  if (emailError) throw emailError;
+  return emailProfile;
+};
+
+const toAppUser = (authUser, profile) => ({
+  id: profile?.id || authUser?.id,
+  email: profile?.email || authUser?.email,
+  full_name:
+    (authUser?.email?.toLowerCase() === DEMO_TRAINER_EMAIL ? DEMO_TRAINER_NAME : null) ||
+    profile?.full_name ||
+    authUser?.user_metadata?.full_name ||
+    authUser?.email?.split('@')[0] ||
+    'User',
+  role: profile?.role || authUser?.user_metadata?.role || 'participant',
+  phone: profile?.phone || authUser?.phone || '',
+  organization_id: profile?.organization_id || null,
+  organization_name: profile?.organization_name || '',
+  status: profile?.status || 'active',
+  created_date: profile?.created_date || authUser?.created_at || nowIso(),
+});
+
+const ensureSupabaseUserProfile = async (authUser, overrides = {}) => {
+  if (!authUser?.id) return null;
+
+  const existingProfile = await fetchUserProfile(authUser.id, authUser.email);
+  if (existingProfile) {
+    if (authUser.email?.toLowerCase() === DEMO_TRAINER_EMAIL && existingProfile.full_name !== DEMO_TRAINER_NAME) {
+      const normalizedTrainerProfile = {
+        ...existingProfile,
+        full_name: DEMO_TRAINER_NAME,
+        email: DEMO_TRAINER_EMAIL,
+      };
+      const { data, error } = await supabase
+        .from('users_profile')
+        .upsert(normalizedTrainerProfile, { onConflict: 'id' })
+        .select()
+        .single();
+      if (!error && data) return data;
+    }
+    return existingProfile;
+  }
+
+  const profile = {
+    id: authUser.id,
+    email: authUser.email?.toLowerCase() === DEMO_TRAINER_EMAIL ? DEMO_TRAINER_EMAIL : authUser.email,
+    full_name:
+      authUser.email?.toLowerCase() === DEMO_TRAINER_EMAIL
+        ? DEMO_TRAINER_NAME
+        : overrides.full_name || authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+    role: overrides.role || authUser.user_metadata?.role || 'participant',
+    phone: overrides.phone || authUser.phone || null,
+    organization_id: overrides.organization_id || null,
+    organization_name: overrides.organization_name || null,
+    status: 'active',
+    created_date: nowIso(),
+  };
+
+  const { data, error } = await supabase
+    .from('users_profile')
+    .upsert(profile, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+const getSupabaseCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!data?.user) {
+    throw Object.assign(new Error('Authentication required'), { status: 401 });
+  }
+
+  const profile = await ensureSupabaseUserProfile(data.user);
+  return toAppUser(data.user, profile);
 };
 
 const auth = {
   async me() {
     const localSession = getSession();
 
-    if (localSession?.user) {
+    if (localSession?.user && shouldUseLocalFallback()) {
       return clone(localSession.user);
+    }
+
+    if (isSupabaseConfigured()) {
+      return getSupabaseCurrentUser();
     }
 
     throw Object.assign(new Error('Authentication required'), { status: 401 });
   },
   async loginViaEmailPassword(email, password) {
+      if (shouldUseSupabaseAuth()) {
+        return createSupabaseAuthSession(email, password);
+      }
+
+      if (email?.toLowerCase() === DEMO_TRAINER_EMAIL) {
+        const demoTrainer = getDemoTrainerUser();
+        if (demoTrainer && demoTrainer.password === password) {
+          setSession(demoTrainer);
+          return clone(demoTrainer);
+        }
+      }
+
+      if (!shouldUseLocalFallback()) {
+        throw Object.assign(new Error('Supabase authentication required'), { status: 401 });
+      }
+
     const user = findLocalUserByCredentials(email, password);
     if (!user) {
       throw new Error('Invalid email or password');
@@ -1444,8 +1627,27 @@ const auth = {
     return clone(user);
   },
   async sendEmailOtp(email) {
-    if (!shouldUseLocalDemoAuth(email)) {
-      throw new Error('OTP login is available only for @vteki.local demo accounts');
+    if (email?.toLowerCase() === DEMO_TRAINER_EMAIL) {
+      const user = getDemoTrainerUser();
+      if (user) {
+        savePendingUser(user);
+        return { success: true };
+      }
+    }
+
+    if (shouldUseSupabaseAuth()) {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+      if (error) throw error;
+      return { success: true };
+    }
+
+    if (!shouldUseLocalFallback()) {
+      throw Object.assign(new Error('Supabase authentication required'), { status: 401 });
     }
 
     const user = getCollection('User').find((entry) => entry.email?.toLowerCase() === email.toLowerCase());
@@ -1456,6 +1658,19 @@ const auth = {
     return { success: true };
   },
   loginWithProvider(_provider, redirectTo = '/') {
+    if (isSupabaseConfigured()) {
+      return supabase.auth.signInWithOAuth({
+        provider: _provider,
+        options: {
+          redirectTo: isBrowser ? `${window.location.origin}${redirectTo}` : undefined,
+        },
+      });
+    }
+
+    if (!shouldUseLocalFallback()) {
+      return;
+    }
+
     const [demoUser] = getCollection('User');
     if (demoUser) {
       setSession(demoUser);
@@ -1465,25 +1680,86 @@ const auth = {
     }
   },
   async register({ email, password }) {
+    if (email?.toLowerCase() === DEMO_TRAINER_EMAIL) {
+      const user = getDemoTrainerUser();
+      if (user) {
+        savePendingUser(user);
+        return { success: true };
+      }
+    }
+
+    if (shouldUseSupabaseAuth()) {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+        },
+      });
+      if (error) throw error;
+      return { success: true };
+    }
+
+    if (!shouldUseLocalFallback()) {
+      throw Object.assign(new Error('Supabase authentication required'), { status: 401 });
+    }
+
     const users = getCollection('User');
     if (users.some((entry) => entry.email?.toLowerCase() === email.toLowerCase())) {
       throw new Error('Email already registered');
     }
-    const pendingUser = {
-      id: createId('user'),
-      email,
-      full_name: email.split('@')[0],
-      role: 'participant',
-      password,
-      created_date: nowIso(),
-    };
-    savePendingUser(pendingUser);
+      const pendingUser = {
+        id: createId('user'),
+        email,
+        password,
+        full_name: email.split('@')[0],
+        role: 'participant',
+        created_date: nowIso(),
+      };
+      savePendingUser(pendingUser);
     return { success: true };
   },
   async verifyOtp({ email, otpCode, type = 'email' }) {
     if (!otpCode || otpCode.length < 6) {
       throw new Error('Invalid verification code');
     }
+
+    if (email?.toLowerCase() === DEMO_TRAINER_EMAIL) {
+      const demoTrainer = getDemoTrainerUser();
+      if (demoTrainer) {
+        clearPendingUser();
+        const accessToken = setSession(demoTrainer);
+        return { access_token: accessToken, user: clone(demoTrainer) };
+      }
+    }
+
+    if (shouldUseSupabaseAuth()) {
+      const pendingUser = getPendingUser() || {};
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: type === 'signup' ? 'email' : type,
+      });
+      if (error) throw error;
+      if (!data?.user) {
+        throw Object.assign(new Error('Unable to verify Supabase OTP'), { status: 401 });
+      }
+      if (pendingUser.password) {
+        const passwordResult = await supabase.auth.updateUser({ password: pendingUser.password });
+        if (passwordResult.error) throw passwordResult.error;
+      }
+      const profile = await ensureSupabaseUserProfile(data.user, pendingUser);
+      clearPendingUser();
+      return {
+        access_token: data.session?.access_token,
+        user: toAppUser(data.user, profile),
+      };
+    }
+
+    if (!shouldUseLocalFallback()) {
+      throw Object.assign(new Error('Supabase authentication required'), { status: 401 });
+    }
+
     const pendingUser = getPendingUser();
     if (!pendingUser || pendingUser.email.toLowerCase() !== email.toLowerCase()) {
       throw new Error('Registration session not found');
@@ -1498,13 +1774,37 @@ const auth = {
   setToken() {
     return true;
   },
-  async resendOtp(email, type = 'signup') {
-    if (email && !shouldUseLocalDemoAuth(email)) {
-      throw new Error('OTP resend is available only for @vteki.local demo accounts');
+  async resendOtp(email, type = 'email') {
+    if (email?.toLowerCase() === DEMO_TRAINER_EMAIL) {
+      const user = getDemoTrainerUser();
+      if (user) return { success: true };
+    }
+
+    if (email && shouldUseSupabaseAuth()) {
+      const emailOtpType = type === 'email_change' ? 'email_change' : 'signup';
+      const { error } = await supabase.auth.resend({
+        type: emailOtpType,
+        email,
+      });
+      if (error) throw error;
+      return { success: true };
+    }
+    if (!shouldUseLocalFallback()) {
+      return { success: true };
     }
     return { success: true };
   },
-  async resetPasswordRequest() {
+  async resetPasswordRequest(email) {
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo: isBrowser ? `${window.location.origin}/forgot-password` : undefined,
+        },
+      );
+      if (error) throw error;
+      return { success: true };
+    }
     return { success: true };
   },
   async resetPassword({ resetToken, newPassword }) {
@@ -1513,6 +1813,9 @@ const auth = {
     }
     const session = getSession();
     if (session?.user) {
+      if (!shouldUseLocalFallback()) {
+        throw Object.assign(new Error('Supabase authentication required'), { status: 401 });
+      }
       const users = getCollection('User');
       const index = users.findIndex((entry) => entry.id === session.user.id);
       if (index >= 0) {
@@ -1524,6 +1827,9 @@ const auth = {
   },
   async logout(redirectTo) {
     clearSession();
+    if (isSupabaseConfigured()) {
+      await supabase.auth.signOut();
+    }
     if (redirectTo && isBrowser) {
       window.location.href = redirectTo;
     }

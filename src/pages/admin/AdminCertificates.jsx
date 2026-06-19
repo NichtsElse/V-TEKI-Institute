@@ -40,78 +40,137 @@ export default function AdminCertificates() {
     ? Math.round(certificates.reduce((sum, certificate) => sum + (certificate.score || 0), 0) / certificates.length)
     : 0;
 
+  const describeError = (error) => {
+    if (error instanceof Error && error.message) return error.message;
+    if (typeof error === 'string' && error.trim()) return error;
+    if (error && typeof error === 'object') {
+      return error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    }
+    return 'Please try again.';
+  };
+
+  const getNextCertificateNumber = (programCode, year, sequence) => {
+    const matchingCertificates = certificates.filter((certificate) => certificate.program_code === programCode);
+    const maxSequence = matchingCertificates.reduce((highest, certificate) => {
+      const suffix = Number.parseInt((certificate.certificate_number || '').split('-').pop() || '0', 10);
+      return Number.isFinite(suffix) ? Math.max(highest, suffix) : highest;
+    }, 0);
+    return `VTK-${year}-${programCode || 'GEN'}-${String(maxSequence + sequence).padStart(6, '0')}`;
+  };
+
+  const createCertificateRecord = async (payload, retryCount = 0) => {
+    try {
+      return await appClient.entities.Certificate.create(payload);
+    } catch (error) {
+      const isDuplicateNumber = error instanceof Error && /unique|duplicate|23505/i.test(error.message);
+      if (isDuplicateNumber && retryCount < 1) {
+        const retryPayload = {
+          ...payload,
+          certificate_number: getNextCertificateNumber(payload.program_code, new Date().getFullYear()),
+        };
+        return createCertificateRecord(retryPayload, retryCount + 1);
+      }
+      throw error;
+    }
+  };
+
   const generateCertificates = async () => {
     if (!selectedBatch) return;
     setGenerating(true);
+    try {
+      const batch = batches.find(b => b.id === selectedBatch);
+      const program = programs.find(p => p.id === batch?.program_id);
+      if (!batch || !program) {
+        toast({ title: 'Batch or program not found', variant: 'destructive' });
+        return;
+      }
+      const eligible = registrations.filter((r) =>
+        r.batch_id === selectedBatch &&
+        appClient.isCertificateEligible({
+          ...r,
+          min_attendance_pct: program?.min_attendance_pct || 80,
+        }) &&
+        !r.certificate_id,
+      );
 
-    const batch = batches.find(b => b.id === selectedBatch);
-    const program = programs.find(p => p.id === batch?.program_id);
-    if (!batch || !program) {
-      setGenerating(false);
-      toast({ title: 'Batch or program not found', variant: 'destructive' });
-      return;
-    }
-    const eligible = registrations.filter((r) =>
-      r.batch_id === selectedBatch &&
-      appClient.isCertificateEligible({
-        ...r,
-        min_attendance_pct: program?.min_attendance_pct || 80,
-      }) &&
-      !r.certificate_id,
-    );
+      if (eligible.length === 0) {
+        toast({ title: 'No eligible participants found for this batch' });
+        return;
+      }
 
-    if (eligible.length === 0) {
-      setGenerating(false);
-      toast({ title: 'No eligible participants found for this batch' });
-      return;
-    }
+      const year = new Date().getFullYear();
+      let sequence = 1;
 
-    const existingCerts = certificates.filter(c => c.program_code === program?.code);
-    let counter = existingCerts.length;
-    const year = new Date().getFullYear();
+      for (const reg of eligible) {
+        const certNumber = getNextCertificateNumber(program?.code, year, sequence);
+        const cert = await createCertificateRecord({
+          certificate_number: certNumber,
+          registration_id: reg.id,
+          participant_name: reg.full_name,
+          participant_email: reg.email,
+          program_name: program?.name || reg.program_name,
+          program_code: program?.code,
+          batch_name: batch?.name,
+          completion_date: new Date().toISOString().split('T')[0],
+          trainer_name: batch?.trainer_name,
+          score: reg.post_assessment_score,
+          verification_status: 'valid',
+        });
+        sequence += 1;
+        try {
+          await appClient.entities.Registration.update(reg.id, { certificate_id: cert.id });
+        } catch (updateError) {
+          console.error('[V-TEKI] Failed to link certificate to registration', {
+            registrationId: reg.id,
+            certificateId: cert.id,
+            error: updateError,
+          });
+        }
+        try {
+          await generateCertificatePDF({
+            ...cert,
+            certificate_number: certNumber,
+            participant_name: reg.full_name,
+            participant_email: reg.email,
+            program_name: program?.name || reg.program_name,
+            batch_name: batch?.name,
+            trainer_name: batch?.trainer_name,
+            score: reg.post_assessment_score,
+          });
+        } catch (pdfError) {
+          console.error('[V-TEKI] Failed to generate certificate PDF', {
+            registrationId: reg.id,
+            certificateId: cert.id,
+            error: pdfError,
+          });
+        }
+      }
 
-    for (const reg of eligible) {
-      counter++;
-      const certNumber = `VTK-${year}-${program?.code || 'GEN'}-${String(counter).padStart(6, '0')}`;
-      const cert = await appClient.entities.Certificate.create({
-        certificate_number: certNumber,
-        registration_id: reg.id,
-        participant_name: reg.full_name,
-        participant_email: reg.email,
-        program_name: program?.name || reg.program_name,
-        program_code: program?.code,
-        batch_name: batch?.name,
-        completion_date: new Date().toISOString().split('T')[0],
-        trainer_name: batch?.trainer_name,
-        score: reg.post_assessment_score,
-        verification_status: 'valid',
+      setGenDialogOpen(false);
+      qc.invalidateQueries({ queryKey: ['certificates'] });
+      qc.invalidateQueries({ queryKey: ['registrations'] });
+      toast({ title: `${eligible.length} certificates generated` });
+    } catch (error) {
+      console.error('[V-TEKI] Certificate generation failed', error);
+      toast({
+        title: 'Failed to generate certificates',
+        description: describeError(error),
+        variant: 'destructive',
       });
-      await appClient.entities.Registration.update(reg.id, { certificate_id: cert.id });
-      await generateCertificatePDF({
-        ...cert,
-        certificate_number: certNumber,
-        participant_name: reg.full_name,
-        participant_email: reg.email,
-        program_name: program?.name || reg.program_name,
-        batch_name: batch?.name,
-        trainer_name: batch?.trainer_name,
-        score: reg.post_assessment_score,
-      });
+    } finally {
+      setGenerating(false);
     }
-
-    setGenerating(false);
-    setGenDialogOpen(false);
-    qc.invalidateQueries({ queryKey: ['certificates'] });
-    qc.invalidateQueries({ queryKey: ['registrations'] });
-    toast({ title: `${eligible.length} certificates generated` });
   };
 
   const [downloading, setDownloading] = useState(null);
 
   const handleDownload = async (cert) => {
     setDownloading(cert.id);
-    await generateCertificatePDF(cert);
-    setDownloading(null);
+    try {
+      await generateCertificatePDF(cert);
+    } finally {
+      setDownloading(null);
+    }
   };
 
   const columns = [

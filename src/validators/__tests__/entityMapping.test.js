@@ -1,15 +1,19 @@
 /**
- * Unit tests for Entity Mapping Module
- * Tests mapping between local entities and Supabase tables
+ * Purpose: Verify local entity to Supabase table mapping behavior.
+ * Used by: Vitest baseline and migration validation.
+ * Main dependencies: Vitest and `src/validators/entityMapping.js`.
+ * Public/main functions: Entity mapping test suites.
+ * Important side effects: None.
  */
 
-const {
+import { describe, expect, it } from 'vitest';
+import {
   ENTITY_MAPPING,
   getSupabaseTableName,
   getEntityMapping,
   getLocalEntityName,
   getAllEntitiesSortedByPriority,
-} = require('../entityMapping');
+} from '../entityMapping.js';
 
 describe('Entity Mapping Module', () => {
   describe('ENTITY_MAPPING constant', () => {
@@ -61,6 +65,11 @@ describe('Entity Mapping Module', () => {
     it('should include Assessment entity mapping to assessments', () => {
       expect(ENTITY_MAPPING.Assessment.supabaseTable).toBe('assessments');
       expect(ENTITY_MAPPING.Assessment.priority).toBe(4);
+    });
+
+    it('should include AssessmentQuestion entity mapping to assessment_questions', () => {
+      expect(ENTITY_MAPPING.AssessmentQuestion.supabaseTable).toBe('assessment_questions');
+      expect(ENTITY_MAPPING.AssessmentQuestion.priority).toBe(4);
     });
 
     it('should include AssessmentResult entity mapping to assessment_submissions', () => {
@@ -119,6 +128,10 @@ describe('Entity Mapping Module', () => {
 
     it('should return correct table name for AssessmentResult', () => {
       expect(getSupabaseTableName('AssessmentResult')).toBe('assessment_submissions');
+    });
+
+    it('should return correct table name for AssessmentQuestion', () => {
+      expect(getSupabaseTableName('AssessmentQuestion')).toBe('assessment_questions');
     });
 
     it('should handle case-insensitive lookups', () => {

@@ -1,5 +1,5 @@
 /**
- * Purpose: Allow trainers to review and grade assessments for their assigned batches.
+ * Purpose: Allow trainers to review and grade assessments for their assigned batches with safe review modal rendering.
  * Used by: Trainer route `/trainer/assessments`.
  * Main dependencies: appClient, React Query, trainer identity helper, and review dialog components.
  * Public/main functions: Default `TrainerAssessments` page export.
@@ -22,6 +22,24 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { resolveTrainerRecord } from '@/domain/trainers/identity';
+
+const formatSafeDate = (value, pattern = 'MMM d, yyyy HH:mm') => {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : format(date, pattern);
+};
+
+const normalizeAnswers = (answers) => {
+  if (Array.isArray(answers)) return answers;
+  if (typeof answers !== 'string') return [];
+
+  try {
+    const parsed = JSON.parse(answers);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 export default function TrainerAssessments() {
   const { user } = useAuth();
@@ -88,22 +106,34 @@ export default function TrainerAssessments() {
 
       return updated;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['assessment-results-trainer'] });
-      qc.invalidateQueries({ queryKey: ['registrations'] });
-      setReviewDialogOpen(false);
-      toast({ title: 'Assessment reviewed and saved' });
-    },
-  });
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ['assessment-results-trainer'] });
+        qc.invalidateQueries({ queryKey: ['registrations'] });
+        setReviewDialogOpen(false);
+        toast({ title: 'Assessment reviewed and saved' });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Failed to save review',
+          description: error?.message || 'Please check trainer permissions and try again.',
+          variant: 'destructive',
+        });
+      },
+    });
 
   const openReview = (result) => {
-    setSelected(result);
+    setSelected({ ...result, answers: normalizeAnswers(result.answers) });
     setScore(result.percentage || '');
     setFeedback(result.feedback || '');
     setReviewDialogOpen(true);
   };
 
   const handleSaveReview = () => {
+    if (!selected) {
+      toast({ title: 'Assessment submission not selected', variant: 'destructive' });
+      return;
+    }
+
     if (!score) {
       toast({ title: 'Please enter a score', variant: 'destructive' });
       return;
@@ -169,7 +199,7 @@ export default function TrainerAssessments() {
       },
     },
     { header: 'Participant', accessor: 'participant_email' },
-    { header: 'Date', cell: (r) => format(new Date(r.submission_date), 'MMM d, yyyy HH:mm') },
+    { header: 'Date', cell: (r) => formatSafeDate(r.submission_date) },
     {
       header: 'Score',
       cell: (r) => (
@@ -273,7 +303,7 @@ export default function TrainerAssessments() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Submitted:</span>
-                  <p className="font-medium">{format(new Date(selected.submission_date), 'MMM d, yyyy')}</p>
+                  <p className="font-medium">{formatSafeDate(selected.submission_date, 'MMM d, yyyy')}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Assessment:</span>

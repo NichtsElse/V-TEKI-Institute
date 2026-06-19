@@ -1,6 +1,7 @@
 -- V-TEKI MVP Supabase schema (FIXED)
 -- Changes from original:
 --   [FIX Bug 1] assessment_submissions: tambah kolom `answers JSONB`
+--   [FIX Bug 5] assessment_submissions: tambah kolom `feedback TEXT` untuk review trainer
 --   [FIX Bug 4] enrollments: tambah kolom `program_id TEXT FK -> programs`
 
 -- Core identity & organization entities
@@ -140,6 +141,7 @@ CREATE TABLE IF NOT EXISTS payments (
   amount NUMERIC(15,2) NOT NULL,
   payment_method TEXT,
   payment_reference TEXT,
+  payment_proof_url TEXT,
   payment_date TIMESTAMPTZ,
   verified_date TIMESTAMPTZ,
   status TEXT DEFAULT 'pending',
@@ -210,6 +212,8 @@ CREATE TABLE IF NOT EXISTS assessment_submissions (
   status TEXT DEFAULT 'submitted',
   -- [FIX Bug 1] kolom answers ditambahkan; seed insert kolom ini tapi schema lama tidak punya
   answers JSONB DEFAULT '[]'::jsonb,
+  -- [FIX Bug 5] feedback review trainer yang disimpan dari halaman Trainer Assessments
+  feedback TEXT,
   submission_date TIMESTAMPTZ DEFAULT NOW(),
   created_date TIMESTAMPTZ DEFAULT NOW(),
   updated_date TIMESTAMPTZ,

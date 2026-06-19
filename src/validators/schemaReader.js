@@ -1,11 +1,13 @@
 /**
- * Schema Reader Module
- * Reads and parses the active Supabase schema to extract table definitions,
- * columns, types, constraints, and enum values.
+ * Purpose: Read and parse the active Supabase schema into table, column, and constraint metadata.
+ * Used by: Validator tests, schema inspection scripts, and Supabase migration checks.
+ * Main dependencies: Node fs/path modules and `supabase/schema_fixed.sql`.
+ * Public/main functions: `readAndParseSchema`, `getSchemaRegistry`, `parseTableDefinition`, `parseColumnDefinition`, and `parseEnumValuesFromConstraint`.
+ * Important side effects: Reads schema files from disk and caches parsed schema metadata in memory.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Parse SQL CHECK constraint to extract enum values
@@ -33,7 +35,7 @@ function parseEnumValuesFromConstraint(constraint) {
  * Returns: { name, type, nullable, isFK, references, constraint }
  */
 function parseColumnDefinition(line, tableName) {
-  const trimmed = line.trim();
+  const trimmed = line.trim().replace(/,\s*$/, '');
 
   // Skip comments and empty lines
   if (!trimmed || trimmed.startsWith('--') || trimmed.startsWith('/*')) {
@@ -74,13 +76,13 @@ function parseColumnDefinition(line, tableName) {
   }
 
   // Check for NOT NULL
-  if (/\bNOT\s+NULL\b/i.test(typeAndConstraints)) {
+  if (/\bNOT\s+NULL\b/i.test(typeAndConstraints) || /\bPRIMARY\s+KEY\b/i.test(typeAndConstraints)) {
     result.nullable = false;
   }
 
   // Check for DEFAULT
   if (/\bDEFAULT\b/i.test(typeAndConstraints)) {
-    result.default = typeAndConstraints.match(/DEFAULT\s+(\S+)/i)?.[1];
+    result.default = typeAndConstraints.match(/DEFAULT\s+(.+?)(?:\s+(?:CHECK|REFERENCES|PRIMARY|NOT\s+NULL)|$)/i)?.[1]?.replace(/,\s*$/, '');
   }
 
   // Check for CHECK constraint (for enums)
@@ -136,6 +138,7 @@ function parseTableDefinition(tableBlock) {
       columns[column.name] = {
         type: column.type,
         nullable: column.nullable,
+        isFK: column.isFK,
         references: column.references,
         constraint: column.constraint,
         enums: column.enums,
@@ -201,7 +204,7 @@ function getSchemaRegistry(filePath = 'supabase/schema_fixed.sql', forceRefresh 
   return cachedSchema;
 }
 
-module.exports = {
+export {
   readAndParseSchema,
   getSchemaRegistry,
   parseTableDefinition,

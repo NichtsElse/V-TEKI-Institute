@@ -1,7 +1,7 @@
 /**
  * Purpose: Review attendance sessions and participant records for the local MVP admin flow.
  * Used by: Admin route `/admin/attendance`.
- * Main dependencies: Local app client, React Query mutations, shared table components, and attendance summary helper.
+ * Main dependencies: Local app client, React Query mutations, shared table components, dialog controls, and attendance summary helper.
  * Public/main functions: Default `AdminAttendance` page export.
  * Important side effects: Creates local attendance sessions/records and updates enrollment attendance percentage.
  */
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Pencil, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -25,6 +25,7 @@ export default function AdminAttendance() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState('all');
+  const [editingRecord, setEditingRecord] = useState(null);
   const [form, setForm] = useState({ registration_id: '', batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
   const [bulkForm, setBulkForm] = useState({ batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
   const qc = useQueryClient();
@@ -74,6 +75,66 @@ export default function AdminAttendance() {
       qc.invalidateQueries({ queryKey: ['registrations'] });
       setDialogOpen(false);
       toast({ title: 'Attendance recorded' });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!editingRecord) {
+        throw new Error('No attendance record selected');
+      }
+
+      const session = attendanceSessions.find((entry) => entry.id === editingRecord.attendance_session_id) || await appClient.entities.AttendanceSession.create({
+        batch_id: data.batch_id,
+        session_date: data.session_date,
+        session_title: data.session_title,
+      });
+
+      const updated = await appClient.entities.AttendanceRecord.update(editingRecord.id, {
+        attendance_session_id: session.id,
+        registration_id: data.registration_id,
+        batch_id: data.batch_id,
+        participant_name: data.participant_name,
+        participant_email: data.participant_email,
+        session_title: data.session_title,
+        session_date: data.session_date,
+        status: data.status,
+        join_time: data.status === 'present' || data.status === 'late' ? data.join_time : '-',
+        leave_time: data.status === 'present' || data.status === 'late' ? data.leave_time : '-',
+      });
+
+      const relevantRecords = attendanceRecords
+        .filter((entry) => entry.id !== editingRecord.id)
+        .concat([updated])
+        .filter((entry) => entry.registration_id === data.registration_id);
+      const attendancePercentage = calculateAttendancePercentage(relevantRecords);
+      await appClient.entities.Registration.update(data.registration_id, { attendance_percentage: attendancePercentage });
+      return updated;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance-sessions'] });
+      qc.invalidateQueries({ queryKey: ['attendance-records'] });
+      qc.invalidateQueries({ queryKey: ['registrations'] });
+      setDialogOpen(false);
+      setEditingRecord(null);
+      setForm({ registration_id: '', batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+      toast({ title: 'Attendance updated' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (record) => {
+      await appClient.entities.AttendanceRecord.delete(record.id);
+      const remaining = attendanceRecords.filter((entry) => entry.id !== record.id && entry.registration_id === record.registration_id);
+      const attendancePercentage = calculateAttendancePercentage(remaining);
+      await appClient.entities.Registration.update(record.registration_id, { attendance_percentage: attendancePercentage });
+      return record;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance-sessions'] });
+      qc.invalidateQueries({ queryKey: ['attendance-records'] });
+      qc.invalidateQueries({ queryKey: ['registrations'] });
+      toast({ title: 'Attendance deleted' });
     },
   });
 
@@ -140,6 +201,40 @@ export default function AdminAttendance() {
     { header: 'Status', cell: (r) => <StatusBadge status={r.status} /> },
     { header: 'Join', accessor: 'join_time' },
     { header: 'Leave', accessor: 'leave_time' },
+    { header: '', cell: (r) => (
+      <div className="flex items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => {
+            setEditingRecord(r);
+            setForm({
+              registration_id: r.registration_id,
+              batch_id: r.batch_id,
+              session_date: r.session_date || '',
+              session_title: r.session_title || '',
+              status: r.status || 'present',
+              join_time: r.join_time || '09:00',
+              leave_time: r.leave_time || '12:00',
+            });
+            setDialogOpen(true);
+            setSelectedBatch(r.batch_id);
+          }}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-destructive"
+          onClick={() => deleteMutation.mutate(r)}
+          disabled={deleteMutation.isPending}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    )},
   ];
 
   return (
@@ -179,9 +274,9 @@ export default function AdminAttendance() {
 
       <DataTable columns={columns} data={filtered} isLoading={isLoading} emptyMessage="No attendance records." />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingRecord(null); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Mark Attendance</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingRecord ? 'Edit Attendance' : 'Mark Attendance'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Batch</Label>
               <Select value={form.batch_id} onValueChange={v => setForm({...form, batch_id: v})}>
@@ -215,13 +310,18 @@ export default function AdminAttendance() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={() => {
               const reg = batchRegs.find(r => r.id === form.registration_id);
-              createMutation.mutate({
+              const payload = {
                 ...form,
                 participant_name: reg?.full_name || '',
                 participant_email: reg?.email || '',
-              });
-            }} disabled={createMutation.isPending} className="bg-secondary hover:bg-secondary/90 text-white">
-              {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save
+              };
+              if (editingRecord) {
+                updateMutation.mutate(payload);
+              } else {
+                createMutation.mutate(payload);
+              }
+            }} disabled={createMutation.isPending || updateMutation.isPending} className="bg-secondary hover:bg-secondary/90 text-white">
+              {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin mr-2" />} {editingRecord ? 'Update' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>

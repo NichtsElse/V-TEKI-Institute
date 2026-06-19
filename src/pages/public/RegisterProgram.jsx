@@ -1,9 +1,9 @@
 /**
- * Purpose: Collect individual or corporate program inquiries for the local MVP preview.
+ * Purpose: Collect individual or corporate program registrations for the public enrollment flow.
  * Used by: Public route `/register-program/:batchId`.
- * Main dependencies: React Router params, local app client, React Query, shadcn form controls, and toast feedback.
+ * Main dependencies: React Router params, app client entity APIs, React Query, shadcn form controls, and toast feedback.
  * Public/main functions: Default `RegisterProgram` page export.
- * Important side effects: Creates local individual enrollment interest records and corporate inquiry records.
+ * Important side effects: Creates enrollment and payment records in the active data store.
  */
 import React, { useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
@@ -49,6 +49,21 @@ export default function RegisterProgram() {
     });
   };
 
+  const buildEnrollmentPayload = ({ full_name, email, phone, company, program_name, batch_name, status, enrollment_status, payment_status, registration_type, organization_name }) => ({
+    full_name,
+    email,
+    phone: phone || '',
+    batch_id: batchId,
+    batch_name: batch_name || batch?.name || '',
+    program_id: batch?.program_id || '',
+    program_name: program_name || program?.name || batch?.program_name || '',
+    registration_type: registration_type || 'individual',
+    status,
+    enrollment_status,
+    payment_status,
+    organization_name: organization_name || company || '',
+  });
+
   React.useEffect(() => {
     if (user) {
       setIndividual(prev => ({ ...prev, full_name: user.full_name || prev.full_name, email: user.email || prev.email }));
@@ -76,103 +91,123 @@ export default function RegisterProgram() {
   const handleIndividualSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const price = program?.price || 0;
-    const initialStatus = price > 0 ? "waiting_payment" : "confirmed";
+    try {
+      const price = program?.price || 0;
+      const initialStatus = price > 0 ? "waiting_payment" : "confirmed";
 
-    const reg = await appClient.entities.Registration.create({
-      ...individual,
-      batch_id: batchId,
-      program_id: batch.program_id,
-      program_name: program?.name || batch.program_name,
-      batch_name: batch.name,
-      registration_type: 'individual',
-      status: initialStatus,
-      enrollment_status: initialStatus,
-      payment_status: price > 0 ? "pending" : "paid",
-    });
-
-    if (price > 0) {
-      const invNum = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const payment = await appClient.entities.Payment.create({
-        invoice_number: invNum,
-        registration_id: reg.id,
-        amount: price,
-        invoice_status: 'issued',
-        status: 'pending',
-        payment_method: 'bank_transfer',
-        program_name: program?.name || batch.program_name,
-        participant_name: individual.full_name,
-        created_date: new Date().toISOString(),
+      const reg = await appClient.entities.Registration.create({
+        ...buildEnrollmentPayload({
+          ...individual,
+          program_name: program?.name || batch.program_name,
+          batch_name: batch.name,
+          status: initialStatus,
+          enrollment_status: initialStatus,
+          payment_status: price > 0 ? "pending" : "paid",
+        }),
       });
-      setGeneratedInvoice(payment);
-    }
 
-    setLoading(false);
-    setSuccess(true);
-    toast({ title: 'Enrollment Submitted', description: 'Your registration has been processed successfully.' });
+      if (price > 0) {
+        const invNum = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const payment = await appClient.entities.Payment.create({
+          invoice_number: invNum,
+          registration_id: reg.id,
+          amount: price,
+          invoice_status: 'issued',
+          status: 'pending',
+          payment_method: 'bank_transfer',
+          program_name: program?.name || batch.program_name,
+          participant_name: individual.full_name,
+          created_date: new Date().toISOString(),
+        });
+        setGeneratedInvoice(payment);
+      }
+
+      setSuccess(true);
+      toast({ title: 'Enrollment Submitted', description: 'Your registration has been processed successfully.' });
+    } catch (error) {
+      toast({
+        title: 'Enrollment failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCorporateSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const price = program?.price || 0;
-    const totalAmount = price * corporate.participant_count;
-    const initialStatus = totalAmount > 0 ? "waiting_payment" : "submitted";
+    try {
+      const price = program?.price || 0;
+      const totalAmount = price * corporate.participant_count;
+      const initialStatus = totalAmount > 0 ? "waiting_payment" : "submitted";
 
-    const reg = await appClient.entities.CorporateRegistration.create({
-      ...corporate,
-      participants: corporateParticipants,
-      batch_id: batchId,
-      program_id: batch.program_id,
-      program_name: program?.name || batch.program_name,
-      batch_name: batch.name,
-      status: initialStatus,
-      total_amount: totalAmount,
-    });
-
-    // Create individual registrations for each participant
-    for (const participant of corporateParticipants) {
-      if (participant.name || participant.email) {
-        await appClient.entities.Registration.create({
-          full_name: participant.name,
-          email: participant.email,
-          phone: '',
+      const reg = await appClient.entities.Registration.create({
+        ...buildEnrollmentPayload({
+          full_name: corporate.pic_name,
+          email: corporate.pic_email,
+          phone: corporate.pic_phone,
           company: corporate.company_name,
-          organization_name: corporate.company_name,
-          user_id: user?.id,
-          batch_id: batchId,
-          program_id: batch.program_id,
           program_name: program?.name || batch.program_name,
           batch_name: batch.name,
-          registration_type: 'corporate',
-          corporate_registration_id: reg.id,
           status: initialStatus,
           enrollment_status: initialStatus,
           payment_status: initialStatus === 'waiting_payment' ? 'pending' : 'paid',
-        });
-      }
-    }
-
-    if (totalAmount > 0) {
-      const invNum = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const payment = await appClient.entities.Payment.create({
-        invoice_number: invNum,
-        registration_id: reg.id,
-        amount: totalAmount,
-        invoice_status: 'issued',
-        status: 'pending',
-        payment_method: 'bank_transfer',
-        program_name: program?.name || batch.program_name,
-        organization_name: corporate.company_name,
-        participant_name: corporate.pic_name,
-        created_date: new Date().toISOString(),
+          registration_type: 'corporate',
+          organization_name: corporate.company_name,
+        }),
       });
-      setGeneratedInvoice(payment);
-    }
 
-    setLoading(false);
-    setSuccess(true);
-    toast({ title: 'Corporate Registration Submitted', description: 'Your registration has been submitted for review.' });
+      // Create individual registrations for each participant
+      for (const participant of corporateParticipants) {
+        if (participant.name || participant.email) {
+          await appClient.entities.Registration.create({
+            ...buildEnrollmentPayload({
+              full_name: participant.name,
+              email: participant.email,
+              phone: '',
+              company: corporate.company_name,
+              organization_name: corporate.company_name,
+            program_name: program?.name || batch.program_name,
+            batch_name: batch.name,
+            registration_type: 'corporate',
+            status: initialStatus,
+            enrollment_status: initialStatus,
+            payment_status: initialStatus === 'waiting_payment' ? 'pending' : 'paid',
+          }),
+          });
+        }
+      }
+
+      if (totalAmount > 0) {
+        const invNum = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const payment = await appClient.entities.Payment.create({
+          invoice_number: invNum,
+          registration_id: reg.id,
+          amount: totalAmount,
+          invoice_status: 'issued',
+          status: 'pending',
+          payment_method: 'bank_transfer',
+          program_name: program?.name || batch.program_name,
+          organization_name: corporate.company_name,
+          participant_name: corporate.pic_name,
+          created_date: new Date().toISOString(),
+        });
+        setGeneratedInvoice(payment);
+      }
+
+      setSuccess(true);
+      toast({ title: 'Corporate Registration Submitted', description: 'Your registration has been submitted for review.' });
+    } catch (error) {
+      toast({
+        title: 'Corporate registration failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -295,10 +330,10 @@ export default function RegisterProgram() {
                     </div>
                   )}
                   <Button type="submit" disabled={loading} className="w-full bg-secondary hover:bg-secondary/90 text-white">
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Submit Enrollment Request
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Submit Enrollment
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
-                    Your request will be stored as a local MVP inquiry and can be reviewed from the admin side.
+                    Your request will be stored in Supabase and can be reviewed from the admin side.
                   </p>
                 </form>
               </CardContent>
@@ -307,7 +342,7 @@ export default function RegisterProgram() {
 
           <TabsContent value="corporate">
             <Card>
-              <CardHeader><CardTitle>Corporate Training Inquiry</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Corporate Training Registration</CardTitle></CardHeader>
               <CardContent>
                 <form onSubmit={handleCorporateSubmit} className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">

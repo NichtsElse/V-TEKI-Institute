@@ -1,16 +1,8 @@
-<!--
-Purpose: Provide the primary setup and orientation guide for the V-TEKI Institute platform.
-Who uses it: Developers, reviewers, and local demo operators.
-Main dependencies: React/Vite frontend, Supabase client, local fallback adapter, and seeded demo data.
-Public/main sections: Capabilities, tech stack, local run steps, auth, Supabase mode, and project structure.
-Important side effects: None.
--->
-
 # V-TEKI Institute Platform
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-19_
 
-V-TEKI CoE is a Supabase-first MVP frontend for training, certification, attendance, assessment, and corporate reporting flows. The app now expects Supabase for auth and data when enabled, while still keeping a local fallback for offline preview.
+V-TEKI Institute is a Supabase-first MVP for training, certification, attendance, assessment, and corporate reporting flows. The app now expects Supabase for auth and data when enabled, while still keeping a local fallback for offline preview.
 
 ## What You Can Do
 
@@ -63,22 +55,62 @@ npm run build
 
 Primary login uses Supabase email OTP when Supabase is configured. The local demo accounts remain available only as fallback preview data when Supabase is disabled or unavailable.
 
-## Supabase Mode
+## Google Sign-In (OAuth)
 
-Enable Supabase to use the real auth and database flow:
+The app supports **"Continue with Google"** via Supabase OAuth. This feature is free and works out of the box once configured.
+
+For a full step-by-step setup guide, see:
+
+- [`docs/GOOGLE_OAUTH_SETUP.md`](docs/GOOGLE_OAUTH_SETUP.md)
+
+## Supabase Keys
+
+Use these keys in two phases:
 
 ```env
+# Runtime in the frontend
 VITE_ENABLE_SUPABASE=true
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Setup only, never in frontend code
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_SECRET_KEY=your_secret_key
 ```
+
+The frontend should run with only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` available at runtime. The service role or secret key is only needed for bootstrap tasks such as seeding data or applying policies from scripts.
 
 Recommended setup order:
 
 1. Import `supabase/schema_fixed.sql`.
-2. Import `supabase/seed_fixed.sql`.
-3. Start the app with the Supabase env vars above.
-4. Verify role flows before enabling RLS table by table.
+2. Import `supabase/seed_complete.sql`.
+3. Run the seed/setup script with service role access once.
+4. Import `supabase/policies_mvp_read_access.sql` for demo RLS.
+5. Start the app with the `VITE_` keys only.
+6. Verify role flows, then keep the app running on anon/public key only.
+
+## Seeded User Profiles
+
+These rows come from the current Supabase `users_profile` seed data. Passwords are included only because this is demo seed data; never reuse these values for production.
+
+| ID | Name | Email | Demo Password | Role | Phone | Status | Organization |
+|---|---|---|---|---|---|---|---|
+| `user_admin_demo` | Demo Admin | `admin@vteki.local` | `admin123` | `academy_admin` | `021-555-0001` | `active` | - |
+| `user_corporate_bni` | Andi Susanto | `pic.bni@vteki.local` | `welcome123` | `corporate_pic` | `021-555-0101` | `active` | Bank Negara Indonesia |
+| `user_corporate_demo` | Rizky Ananta | `corporate@vteki.local` | `corporate123` | `corporate_pic` | `021-555-0100` | `active` | PT Solusi Transformasi Nusantara |
+| `user_participant_aulia` | Aulia Ramadhan | `aulia.ramadhan@example.com` | `welcome123` | `participant` | `081234567891` | `active` | - |
+| `user_part_03` | Bima Satria | `bima.satria@example.com` | `welcome123` | `participant` | `081311223344` | `active` | PT Solusi Transformasi Nusantara |
+| `user_part_06` | Cindy Wijaya | `cindy.wijaya@example.com` | `welcome123` | `participant` | `081122334455` | `active` | Bank Negara Indonesia |
+| `user_participant_demo` | Demo Participant | `participant@vteki.local` | `participant123` | `participant` | `081234567890` | `active` | - |
+| `user_part_07` | Dimas Pratama | `dimas.pratama@example.com` | `welcome123` | `participant` | `081133445566` | `active` | Bank Negara Indonesia |
+| `user_part_02` | Dina Kusuma | `dina.kusuma@example.com` | `welcome123` | `participant` | `081298765432` | `active` | PT Solusi Transformasi Nusantara |
+| `user_part_05` | Farhan Maulana | `farhan.maulana@example.com` | `welcome123` | `participant` | `081344556677` | `active` | - |
+| `user_part_04` | Meylani Putri | `meylani.putri@example.com` | `welcome123` | `participant` | `081355667788` | `active` | PT Solusi Transformasi Nusantara |
+| `user_superadmin_demo` | Super Admin | `superadmin@vteki.local` | `superadmin123` | `super_admin` | `021-555-0002` | `active` | - |
+| `user_trainer_budi` | Budi Santoso | `budi.santoso@vteki.local` | `welcome123` | `trainer` | `081300000004` | `active` | - |
+| `user_trainer_demo` | Idha Kristiana | `trainer@vteki.local` | `trainer123` | `trainer` | `081300000001` | `active` | - |
+| `user_trainer_rafael` | Rafael Mahendra | `rafael.mahendra@vteki.local` | `welcome123` | `trainer` | `081300000002` | `active` | - |
+| `user_trainer_salma` | Salma Wijaya | `salma.wijaya@vteki.local` | `welcome123` | `trainer` | `081300000003` | `active` | - |
 
 ## Project Structure
 

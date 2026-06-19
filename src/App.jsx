@@ -110,6 +110,9 @@ const AuthenticatedApp = () => {
       {/* Protected dashboard routes */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<DashboardLayout />}>
+          {/* Profile route accessible to all authenticated users */}
+          <Route path="/participant/profile" element={<Profile />} />
+
           {/* Admin routes */}
           <Route element={<ProtectedRoute allowedRoles={['admin', 'academy_admin', 'super_admin']} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -135,7 +138,6 @@ const AuthenticatedApp = () => {
             <Route path="/participant/assessments/:assessmentId/take" element={<AssessmentTake />} />
             <Route path="/participant/certificates" element={<MyCertificates />} />
             <Route path="/participant/feedback/:enrollmentId" element={<FeedbackSubmit />} />
-            <Route path="/participant/profile" element={<Profile />} />
           </Route>
           {/* Trainer routes */}
           <Route element={<ProtectedRoute allowedRoles={['trainer']} />}>

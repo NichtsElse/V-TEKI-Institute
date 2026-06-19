@@ -24,9 +24,9 @@ export default function CorporateParticipants() {
   const organizationName = resolveCorporateOrganizationName(user, registrations, []);
 
   const filtered = registrations.filter(
-    (registration) => 
-      registration.organization_name === organizationName || 
-      (user?.id && registration.user_id === user.id)
+    (registration) =>
+      registration.registration_type === 'corporate' &&
+      registration.organization_name === organizationName,
   );
   const columns = [
     { header: 'Participant', cell: (row) => <span className="font-medium">{row.full_name}</span> },

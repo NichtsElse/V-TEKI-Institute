@@ -7,9 +7,18 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_KEY || import.meta.env.SUPABASE_ANON_KEY;
-const enableFlag = import.meta.env.VITE_ENABLE_SUPABASE;
+const cleanEnv = (value) => (typeof value === 'string' ? value.trim() : value);
+
+const supabaseUrl = cleanEnv(import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL);
+const supabaseAnonKey =
+  cleanEnv(
+    import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    import.meta.env.SUPABASE_KEY ||
+    import.meta.env.SUPABASE_ANON_KEY
+  );
+const enableFlag = cleanEnv(import.meta.env.VITE_ENABLE_SUPABASE);
+const strictModeFlag = cleanEnv(import.meta.env.VITE_SUPABASE_STRICT_MODE);
 const hasPlaceholderCredentials =
   !supabaseUrl ||
   !supabaseAnonKey ||
@@ -17,7 +26,7 @@ const hasPlaceholderCredentials =
   supabaseAnonKey === 'your_supabase_anon_key';
 const supabaseEnabled = enableFlag == null
   ? Boolean(supabaseUrl && supabaseAnonKey && !hasPlaceholderCredentials)
-  : enableFlag === 'true' && !hasPlaceholderCredentials;
+  : enableFlag.toLowerCase() === 'true' && !hasPlaceholderCredentials;
 
 if (supabaseEnabled && (!supabaseUrl || !supabaseAnonKey)) {
   console.warn(
@@ -32,3 +41,4 @@ export const supabase = supabaseEnabled && supabaseUrl && supabaseAnonKey
   : null;
 
 export const isSupabaseConfigured = () => !!supabase;
+export const isSupabaseStrictMode = () => strictModeFlag?.toLowerCase() === 'true';
