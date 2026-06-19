@@ -8,153 +8,142 @@ Important side effects: None.
 
 # Application Architecture
 
-_Current note: the live app is a React + Vite MVP that is Supabase-first when configured, with seeded local demo data retained as fallback preview._
+_Last updated: 2026-06-19_
+
+> **Catatan**: Aplikasi yang berjalan saat ini adalah React + Vite MVP yang menggunakan Supabase sebagai backend utama, dengan data demo lokal sebagai fallback preview.
+
+---
 
 ## Overview
 
-The application should evolve in three clear layers:
+Aplikasi dirancang dalam tiga layer yang jelas:
 
-1. Presentation layer
-2. Domain layer
-3. Data access layer
+1. **Presentation Layer** — UI dan interaksi pengguna
+2. **Domain Layer** — logika bisnis bersama
+3. **Data Access Layer** — abstraksi penyimpanan dan backend
 
-This keeps the current MVP usable while leaving room for `Express.js + Supabase` later.
+Pemisahan ini menjaga MVP tetap dapat digunakan sambil membuka ruang untuk migrasi `Express.js + Supabase` di masa depan.
+
+---
 
 ## Presentation Layer
 
-This layer contains:
+Layer ini berisi:
+- halaman (pages)
+- dashboard
+- form
+- tabel dan kartu
+- komponen layout
+- navigasi berbasis role
 
-- pages
-- dashboards
-- forms
-- tables
-- cards
-- layout components
-- role-based navigation
-
-Current examples:
-
+**Lokasi saat ini:**
 - `src/pages/*`
 - `src/components/*`
 - `src/api/appClient.js`
 
-Responsibilities:
-
+**Tanggung jawab:**
 - render UI
-- collect user input
-- display state and summaries
-- call domain/data helpers
+- kumpulkan input pengguna
+- tampilkan status dan ringkasan
+- panggil helper domain/data
 
-Should not own:
+**Tidak boleh memiliki:**
+- logika aturan sertifikat
+- logika keputusan role
+- aturan bisnis lintas modul
 
-- certificate rule logic
-- role decision logic
-- cross-module business rules
+---
 
 ## Domain Layer
 
-This layer contains shared business logic and reusable rules.
+Layer ini berisi logika bisnis bersama dan aturan yang dapat digunakan ulang.
 
-Current direction:
-
+**Lokasi saat ini:**
 - `src/domain/auth`
 - `src/domain/certificates`
 - `src/domain/trainers`
+- `src/domain/corporate`
 
-Target modules:
+**Target modul:**
+- `auth` — mapping role dan sesi
+- `roles` — helper navigasi berbasis role
+- `enrollments` — lifecycle enrollment
+- `payments` — logika status pembayaran
+- `assessments` — logika penilaian
+- `attendance` — logika kehadiran
+- `feedback` — logika feedback
+- `certificates` — kelayakan dan penerbitan sertifikat
 
-- `auth`
-- `roles`
-- `enrollments`
-- `payments`
-- `assessments`
-- `attendance`
-- `feedback`
-- `certificates`
-
-Responsibilities:
-
-- role mapping
-- role home routes
-- certificate eligibility
-- enrollment lifecycle logic
-- completion logic
-- status derivation and readiness logic
+---
 
 ## Data Access Layer
 
-Current mode:
-
+**Mode saat ini:**
 - `src/api/appClient.js`
-- Supabase-backed reads/writes when configured
-- local in-browser adapter as fallback preview
+- Baca/tulis data melalui Supabase jika dikonfigurasi
+- Adapter in-browser lokal sebagai fallback preview
 
-Future mode:
+**Mode masa depan:**
+- Optional API service layer di frontend yang memanggil `Express.js`
+- Persistensi backend melalui `Supabase`
 
-- optional frontend API service layer calling `Express.js`
-- backend persistence through `Supabase`
+**Tanggung jawab:**
+- baca/tulis data
+- isolasi perbedaan penyimpanan/backend
+- jaga komponen halaman tetap agnostik terhadap backend
 
-Responsibilities:
-
-- read/write data
-- isolate storage/backend differences
-- keep page components backend-agnostic
+---
 
 ## Authentication
 
-### Current MVP
+### MVP Saat Ini
+- Supabase email OTP saat dikonfigurasi
+- Google Sign-In via Supabase OAuth
+- penanganan sesi lokal hanya untuk fallback preview
+- redirect dan perilaku sidebar berbasis role
 
-- Supabase email OTP when configured
-- local session handling only for fallback preview
-- role-aware redirect and sidebar behavior
+### Target Backend Model
+- `Supabase Auth` untuk identitas
+- optional `Express.js` middleware untuk validasi auth jika REST API ditambahkan
 
-### Target backend model
-
-- `Supabase Auth` for identity
-- optional `Express.js` middleware for auth validation if a REST API is added
-- optional current user endpoint through `/api/auth/me`
+---
 
 ## Authorization
 
-Target roles:
+**Role yang didukung:**
 
-- `super_admin`
-- `academy_admin`
-- `trainer`
-- `participant`
-- `corporate_pic`
+| Role | Akses |
+|---|---|
+| `super_admin` | Akses sistem dan operasional penuh |
+| `academy_admin` | Akses operasional penuh |
+| `trainer` | Kelas yang ditugaskan, peserta, absensi, assessment |
+| `participant` | Data pembelajaran, pembayaran, feedback, sertifikat milik sendiri |
+| `corporate_pic` | Peserta organisasi, invoice, laporan organisasi |
 
-Expected access boundaries:
-
-- `super_admin`
-  - full system and operational access
-- `academy_admin`
-  - full operational access
-- `trainer`
-  - assigned classes, participants, attendance, assessments
-- `participant`
-  - own learning, payments, feedback, certificates
-- `corporate_pic`
-  - own organization participants, invoices, reports
+---
 
 ## RLS Direction
 
-Although RLS is not active yet, design should follow Supabase RLS boundaries:
+Meskipun RLS belum aktif, desain harus mengikuti batasan Supabase RLS:
 
-- participant sees only own records
-- trainer sees only assigned records
-- corporate PIC sees only organization records
-- admin roles manage operational records
-- service role remains backend-only
+- participant hanya melihat data miliknya
+- trainer hanya melihat data yang ditugaskan
+- corporate PIC hanya melihat data organisasinya
+- admin roles mengelola data operasional
+- service role tetap di backend saja
 
-## Certificate Eligibility
+---
 
-Certificate issuance must use one shared rule:
+## Kelayakan Sertifikat
 
-- `payment_status = paid`
-- `attendance_percentage >= 80`
-- `post_assessment_status = completed`
-- `feedback_status = submitted`
-- `completion_status = completed`
+Penerbitan sertifikat harus menggunakan satu aturan bersama yang terpusat di domain layer:
 
-This logic must stay centralized in the domain layer.
+| Syarat | Nilai |
+|---|---|
+| `payment_status` | `paid` |
+| `attendance_percentage` | `>= 80%` |
+| `post_assessment_status` | `completed` |
+| `feedback_status` | `submitted` |
+| `completion_status` | `completed` |
+
+Logika ini harus tetap terpusat di domain layer dan tidak boleh diduplikasi di halaman mana pun.

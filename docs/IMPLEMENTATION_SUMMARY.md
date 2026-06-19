@@ -8,39 +8,92 @@ Important side effects: None.
 
 # Implementation Summary
 
-_Current note: this summary reflects the Supabase-first MVP with local fallback preview, not a production-hardened deployment._
+_Last updated: 2026-06-19_
+
+> **Catatan**: Ringkasan ini mencerminkan MVP Supabase-first dengan fallback preview lokal, bukan deployment yang diperkuat untuk produksi.
+
+---
 
 ## What Is Working
 
-- public pages
-- Supabase OTP auth
-- local demo auth fallback
-- role-based routing
-- participant dashboards and program flows
-- trainer dashboards, batches, attendance, assessments, feedback, and reports
-- corporate dashboard, participant list, and invoices
-- admin program, batch, registration, payment, attendance, assessment, feedback, and certificate flows
-- certificate PDF generation
-- admin invoice creation
+### Auth & Akses
+- ✅ Supabase OTP auth (email + password)
+- ✅ Google Sign-In via Supabase OAuth
+- ✅ Register akun baru ("Create account")
+- ✅ Local demo auth fallback
+- ✅ Role-based routing dan redirect
+- ✅ My Profile dapat diakses dari semua role
+
+### Halaman Publik
+- ✅ Landing page
+- ✅ Daftar program
+- ✅ Profil trainer (hanya Dr. Idha Kristiana yang aktif)
+- ✅ Verifikasi sertifikat publik
+
+### Participant Dashboard
+- ✅ Dashboard dan program flow peserta
+- ✅ Riwayat enrollment dan pembayaran
+- ✅ Pre/post assessment
+- ✅ Attendance view
+- ✅ Feedback submission
+- ✅ Certificate download (PDF)
+
+### Trainer Dashboard
+- ✅ Dashboard trainer
+- ✅ Manajemen batch yang ditugaskan
+- ✅ Input attendance manual
+- ✅ Assessment review
+- ✅ Feedback view
+- ✅ Laporan trainer
+
+### Corporate Dashboard
+- ✅ Dashboard corporate PIC
+- ✅ Daftar peserta organisasi
+- ✅ Invoice organisasi
+
+### Admin Dashboard
+- ✅ Manajemen program dan batch
+- ✅ Manajemen registrasi
+- ✅ Payment verification
+- ✅ Attendance management
+- ✅ Assessment management
+- ✅ Feedback overview
+- ✅ Certificate management
+- ✅ Admin invoice creation
+
+---
 
 ## Current Runtime Contract
 
-- React + Vite frontend
-- Supabase-backed data when configured
-- local seeded data in the browser as fallback preview
-- optional future Express.js API path still documented
+| Komponen | Detail |
+|---|---|
+| Frontend | React + Vite |
+| Backend | Supabase Auth + Postgres (saat dikonfigurasi) |
+| Fallback | Data demo lokal di browser |
+| Auth | Email OTP + Google OAuth via Supabase |
+| Dev server | `127.0.0.1:4173` (strictPort) |
+
+---
 
 ## Recent Stability Work
 
-- fixed trainer attendance blank-page crash
-- fixed participant attendance presentation
-- fixed certificate generation and download flows
-- added admin invoice creation flow
-- aligned Supabase schema and seed files to the frontend data shape
-- kept the local dev server stable on `127.0.0.1:4173`
+- Fixed trainer attendance blank-page crash
+- Fixed participant attendance presentation
+- Fixed certificate generation dan download flow
+- Added admin invoice creation flow
+- Aligned Supabase schema dan seed files ke shape data frontend
+- Removed "Login flow" dan "Quick access accounts" info box dari halaman login
+- Updated tombol "Send link" menjadi "Create account" di halaman register
+- Fixed My Profile routing untuk semua role
+- Google Sign-In diaktifkan via Supabase OAuth
+- Semua dokumentasi `docs/` diperbarui
+
+---
 
 ## Notes
 
-- This document is a project summary, not a migration checklist.
-- RLS activation remains the next database safety milestone after role verification.
-- Express.js remains optional unless the project needs a dedicated backend API.
+- Dokumen ini adalah ringkasan proyek, bukan migration checklist.
+- Aktivasi RLS tetap menjadi milestone keamanan database berikutnya setelah verifikasi role.
+- Express.js tetap opsional kecuali project membutuhkan dedicated backend API.
+- Untuk ganti project Supabase, lihat [`docs/SUPABASE_MIGRATION.md`](SUPABASE_MIGRATION.md).
+- Untuk setup Google Sign-In, lihat [`docs/GOOGLE_OAUTH_SETUP.md`](GOOGLE_OAUTH_SETUP.md).

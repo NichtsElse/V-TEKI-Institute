@@ -8,109 +8,151 @@ Important side effects: None.
 
 # API Design Summary
 
-_Current note: this is a future backend contract. The live MVP is Supabase-first when configured and uses local demo data only as fallback preview._
+_Last updated: 2026-06-19_
+
+> **Catatan**: Dokumen ini menggambarkan kontrak REST API untuk backend di masa depan. MVP yang berjalan saat ini menggunakan Supabase langsung dari frontend melalui `src/api/appClient.js`. Tidak ada Express.js API yang aktif saat ini.
+
+---
 
 ## API Style
 
-Recommended API style for the future backend:
+Gaya API yang direkomendasikan untuk backend masa depan:
 
 - REST-oriented
-- grouped by business domain
-- role-protected
-- validated on every write path
+- dikelompokkan per domain bisnis
+- dilindungi berdasarkan role
+- divalidasi di setiap write path
+
+---
 
 ## Auth
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `POST` | `/api/auth/register` | Registrasi user baru |
+| `POST` | `/api/auth/login` | Login dan buat sesi |
+| `POST` | `/api/auth/logout` | Hapus sesi aktif |
+| `GET` | `/api/auth/me` | Ambil data user yang sedang login |
 
-Responsibilities:
-
-- session creation
-- session destroy
-- current user lookup
-- role-aware auth state
+---
 
 ## Programs
 
-- `GET /api/programs`
-- `GET /api/programs/:id`
-- `POST /api/programs`
-- `PUT /api/programs/:id`
-- `DELETE /api/programs/:id`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/programs` | Daftar semua program |
+| `GET` | `/api/programs/:id` | Detail program |
+| `POST` | `/api/programs` | Buat program baru (admin) |
+| `PUT` | `/api/programs/:id` | Update program (admin) |
+| `DELETE` | `/api/programs/:id` | Hapus program (admin) |
+
+---
 
 ## Batches
 
-- `GET /api/batches`
-- `GET /api/batches/:id`
-- `POST /api/batches`
-- `PUT /api/batches/:id`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/batches` | Daftar semua batch |
+| `GET` | `/api/batches/:id` | Detail batch |
+| `POST` | `/api/batches` | Buat batch baru (admin) |
+| `PUT` | `/api/batches/:id` | Update batch (admin) |
+
+---
 
 ## Enrollment
 
-- `POST /api/register/individual`
-- `POST /api/register/corporate`
-- `GET /api/enrollments`
-- `GET /api/enrollments/:id`
-- `PUT /api/enrollments/:id`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `POST` | `/api/register/individual` | Registrasi peserta individu |
+| `POST` | `/api/register/corporate` | Registrasi peserta korporat |
+| `GET` | `/api/enrollments` | Daftar enrollment |
+| `GET` | `/api/enrollments/:id` | Detail enrollment |
+| `PUT` | `/api/enrollments/:id` | Update status enrollment |
 
-## Payments and Invoices
+---
 
-- `GET /api/invoices`
-- `GET /api/payments`
-- `POST /api/payments/upload-proof`
-- `POST /api/payments/verify`
+## Payments & Invoices
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/invoices` | Daftar invoice |
+| `GET` | `/api/payments` | Daftar pembayaran |
+| `POST` | `/api/payments/upload-proof` | Upload bukti pembayaran |
+| `POST` | `/api/payments/verify` | Verifikasi pembayaran (admin) |
+
+---
 
 ## Assessments
 
-- `GET /api/assessments/:programId`
-- `POST /api/assessments`
-- `POST /api/assessments/:id/submit`
-- `GET /api/assessments/result/:enrollmentId`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `GET` | `/api/assessments/:programId` | Ambil soal assessment |
+| `POST` | `/api/assessments` | Buat assessment (trainer/admin) |
+| `POST` | `/api/assessments/:id/submit` | Submit jawaban peserta |
+| `GET` | `/api/assessments/result/:enrollmentId` | Ambil hasil assessment |
+
+---
 
 ## Attendance
 
-- `POST /api/attendance/check-in`
-- `POST /api/attendance/check-out`
-- `POST /api/attendance/manual`
-- `GET /api/attendance/:batchId`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `POST` | `/api/attendance/check-in` | Check-in peserta |
+| `POST` | `/api/attendance/check-out` | Check-out peserta |
+| `POST` | `/api/attendance/manual` | Input manual absensi (trainer) |
+| `GET` | `/api/attendance/:batchId` | Daftar absensi per batch |
+
+---
 
 ## Feedback
 
-- `POST /api/feedback`
-- `GET /api/feedback/:enrollmentId`
-- `GET /api/feedback`
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `POST` | `/api/feedback` | Submit feedback peserta |
+| `GET` | `/api/feedback/:enrollmentId` | Ambil feedback per enrollment |
+| `GET` | `/api/feedback` | Semua feedback (admin/trainer) |
 
-## Completion and Certificates
+---
 
-- `POST /api/completion/validate/:enrollmentId`
-- `POST /api/certificates/generate/:enrollmentId`
-- `GET /api/certificates/:certificateNumber`
-- `GET /api/certificates/verify/:verificationCode`
-- `GET /api/certificates/download/:certificateNumber`
+## Completion & Certificates
 
-## API Rules
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| `POST` | `/api/completion/validate/:enrollmentId` | Validasi kelayakan sertifikat |
+| `POST` | `/api/certificates/generate/:enrollmentId` | Generate sertifikat |
+| `GET` | `/api/certificates/:certificateNumber` | Ambil sertifikat |
+| `GET` | `/api/certificates/verify/:verificationCode` | Verifikasi keaslian sertifikat |
+| `GET` | `/api/certificates/download/:certificateNumber` | Download PDF sertifikat |
 
-- all write endpoints must use schema validation
-- all sensitive endpoints must require authentication
-- role-based authorization must be enforced in middleware
-- certificate generation must use shared eligibility logic
-- Supabase service-role access must remain backend-only
+---
+
+## Aturan API
+
+- semua write endpoint wajib menggunakan validasi schema
+- semua endpoint sensitif wajib menggunakan autentikasi
+- otorisasi berbasis role wajib diterapkan di middleware
+- logika kelayakan sertifikat menggunakan helper di domain layer
+- service-role Supabase tetap di backend, tidak boleh masuk ke frontend
+
+---
 
 ## RLS Alignment
 
-The API should align with future Supabase RLS expectations:
+API harus selaras dengan ekspektasi Supabase RLS:
 
-- participant -> own records only
-- trainer -> assigned records only
-- corporate PIC -> organization records only
-- admin roles -> operational scope
+| Role | Akses |
+|---|---|
+| `participant` | hanya data miliknya sendiri |
+| `trainer` | hanya data batch yang ditugaskan |
+| `corporate_pic` | hanya data organisasinya |
+| `academy_admin` | akses operasional penuh |
+| `super_admin` | akses sistem penuh |
 
-## Current Runtime
+---
 
-- Frontend runs through the app client abstraction, not this REST API yet.
-- Supabase Auth and Postgres are the active backend direction when env vars are configured.
-- Express routes remain a future backend option if the project needs a dedicated API layer.
-- Certificate eligibility stays shared in the frontend domain layer until backend API migration starts.
+## Runtime Saat Ini
+
+- Frontend berjalan melalui abstraksi `appClient.js`, bukan REST API ini.
+- Supabase Auth dan Postgres adalah backend aktif ketika env vars dikonfigurasi.
+- Express.js routes tetap menjadi opsi masa depan jika project membutuhkan dedicated API layer.
+- Logika kelayakan sertifikat tetap berada di domain layer frontend hingga migrasi backend dimulai.

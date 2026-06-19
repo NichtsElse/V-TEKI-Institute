@@ -63,6 +63,12 @@ For a full step-by-step setup guide, see:
 
 - [`docs/GOOGLE_OAUTH_SETUP.md`](docs/GOOGLE_OAUTH_SETUP.md)
 
+## Ganti Project Supabase
+
+Untuk memindahkan aplikasi ke akun atau project Supabase yang berbeda, lihat panduan lengkap di:
+
+- [`docs/SUPABASE_MIGRATION.md`](docs/SUPABASE_MIGRATION.md)
+
 ## Supabase Keys
 
 Use these keys in two phases:
@@ -96,21 +102,20 @@ These rows come from the current Supabase `users_profile` seed data. Passwords a
 | ID | Name | Email | Demo Password | Role | Phone | Status | Organization |
 |---|---|---|---|---|---|---|---|
 | `user_admin_demo` | Demo Admin | `admin@vteki.local` | `admin123` | `academy_admin` | `021-555-0001` | `active` | - |
-| `user_corporate_bni` | Andi Susanto | `pic.bni@vteki.local` | `welcome123` | `corporate_pic` | `021-555-0101` | `active` | Bank Negara Indonesia |
-| `user_corporate_demo` | Rizky Ananta | `corporate@vteki.local` | `corporate123` | `corporate_pic` | `021-555-0100` | `active` | PT Solusi Transformasi Nusantara |
-| `user_participant_aulia` | Aulia Ramadhan | `aulia.ramadhan@example.com` | `welcome123` | `participant` | `081234567891` | `active` | - |
-| `user_part_03` | Bima Satria | `bima.satria@example.com` | `welcome123` | `participant` | `081311223344` | `active` | PT Solusi Transformasi Nusantara |
-| `user_part_06` | Cindy Wijaya | `cindy.wijaya@example.com` | `welcome123` | `participant` | `081122334455` | `active` | Bank Negara Indonesia |
-| `user_participant_demo` | Demo Participant | `participant@vteki.local` | `participant123` | `participant` | `081234567890` | `active` | - |
-| `user_part_07` | Dimas Pratama | `dimas.pratama@example.com` | `welcome123` | `participant` | `081133445566` | `active` | Bank Negara Indonesia |
-| `user_part_02` | Dina Kusuma | `dina.kusuma@example.com` | `welcome123` | `participant` | `081298765432` | `active` | PT Solusi Transformasi Nusantara |
-| `user_part_05` | Farhan Maulana | `farhan.maulana@example.com` | `welcome123` | `participant` | `081344556677` | `active` | - |
-| `user_part_04` | Meylani Putri | `meylani.putri@example.com` | `welcome123` | `participant` | `081355667788` | `active` | PT Solusi Transformasi Nusantara |
 | `user_superadmin_demo` | Super Admin | `superadmin@vteki.local` | `superadmin123` | `super_admin` | `021-555-0002` | `active` | - |
-| `user_trainer_budi` | Budi Santoso | `budi.santoso@vteki.local` | `welcome123` | `trainer` | `081300000004` | `active` | - |
 | `user_trainer_demo` | Idha Kristiana | `trainer@vteki.local` | `trainer123` | `trainer` | `081300000001` | `active` | - |
-| `user_trainer_rafael` | Rafael Mahendra | `rafael.mahendra@vteki.local` | `welcome123` | `trainer` | `081300000002` | `active` | - |
-| `user_trainer_salma` | Salma Wijaya | `salma.wijaya@vteki.local` | `welcome123` | `trainer` | `081300000003` | `active` | - |
+| `user_corporate_demo` | Rizky Ananta | `corporate@vteki.local` | `corporate123` | `corporate_pic` | `021-555-0100` | `active` | PT Solusi Transformasi Nusantara |
+| `user_participant_demo` | Demo Participant | `participant@vteki.local` | `participant123` | `participant` | `081234567890` | `active` | - |
+| `user_corporate_bni` | Andi Susanto | `pic.bni@vteki.local` | `welcome123` | `corporate_pic` | `021-555-0101` | `active` | Bank Negara Indonesia |
+| `user_participant_aulia` | Aulia Ramadhan | `aulia.ramadhan@example.com` | `welcome123` | `participant` | `081234567891` | `active` | - |
+| `user_part_02` | Dina Kusuma | `dina.kusuma@example.com` | `welcome123` | `participant` | `081298765432` | `active` | PT Solusi Transformasi Nusantara |
+| `user_part_03` | Bima Satria | `bima.satria@example.com` | `welcome123` | `participant` | `081311223344` | `active` | PT Solusi Transformasi Nusantara |
+| `user_part_04` | Meylani Putri | `meylani.putri@example.com` | `welcome123` | `participant` | `081355667788` | `active` | PT Solusi Transformasi Nusantara |
+| `user_part_05` | Farhan Maulana | `farhan.maulana@example.com` | `welcome123` | `participant` | `081344556677` | `active` | - |
+| `user_part_06` | Cindy Wijaya | `cindy.wijaya@example.com` | `welcome123` | `participant` | `081122334455` | `active` | Bank Negara Indonesia |
+| `user_part_07` | Dimas Pratama | `dimas.pratama@example.com` | `welcome123` | `participant` | `081133445566` | `active` | Bank Negara Indonesia |
+| `user_trainer_rafael` | Rafael Mahendra | `rafael.mahendra@vteki.local` | `welcome123` | `trainer` | `081300000002` | `inactive` | - |
+| `user_trainer_salma` | Salma Wijaya | `salma.wijaya@vteki.local` | `welcome123` | `trainer` | `081300000003` | `inactive` | - |
 
 ## Project Structure
 

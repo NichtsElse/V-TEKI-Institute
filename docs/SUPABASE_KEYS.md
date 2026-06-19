@@ -8,29 +8,52 @@ Important side effects: None.
 
 # Supabase Keys
 
-_Current note: the target runtime is frontend-only with `anon` or publishable key access. Service-role and secret keys are setup-only._
+_Last updated: 2026-06-19_
+
+> **Catatan**: Target runtime adalah frontend-only dengan akses anon/publishable key. Service-role dan secret key hanya untuk setup awal, tidak boleh ada di kode frontend.
+
+---
 
 ## Key Matrix
 
-| Key | Needed For | Where It Belongs |
+| Key | Digunakan Untuk | Lokasi |
 |---|---|---|
-| `VITE_SUPABASE_URL` | Frontend runtime and Supabase client creation | `.env.local` |
-| `VITE_SUPABASE_ANON_KEY` | Frontend runtime reads/writes allowed by RLS | `.env.local` |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Alternative frontend runtime public key name | `.env.local` |
-| `SUPABASE_SERVICE_ROLE_KEY` | One-time seeding, admin scripts, and setup tasks | local shell env or secure script runner |
-| `SUPABASE_SECRET_KEY` | Setup-only secrets or administrative automation | secure local setup only, never frontend |
+| `VITE_SUPABASE_URL` | Runtime frontend dan pembuatan Supabase client | `.env.local` |
+| `VITE_SUPABASE_ANON_KEY` | Baca/tulis frontend yang diizinkan RLS | `.env.local` |
+| `VITE_ENABLE_SUPABASE` | Flag untuk mengaktifkan Supabase (set `true`) | `.env.local` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Seeding satu kali, admin scripts, dan setup tasks | shell env lokal atau script runner aman |
+| `SUPABASE_SECRET_KEY` | Rahasia setup-only atau automasi administratif | setup lokal aman saja, **jangan ke frontend** |
+
+---
+
+## Cara Mendapatkan Keys
+
+1. Buka **[Supabase Dashboard](https://supabase.com/dashboard)**.
+2. Pilih project Anda.
+3. Buka **Project Settings** > **API**.
+4. Salin:
+   - **Project URL** → `VITE_SUPABASE_URL`
+   - **anon / public** key → `VITE_SUPABASE_ANON_KEY`
+   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (hanya untuk setup)
+
+---
 
 ## Recommended Setup Flow
 
-1. Create the schema in Supabase.
-2. Seed the demo data with the setup script.
-3. Apply the RLS policy file for demo/public reads.
-4. Confirm the frontend can read data with the anon/publishable key.
-5. Remove any frontend dependency on service-role or secret keys.
+1. Buat project baru di Supabase.
+2. Jalankan `supabase/schema_fixed.sql` di SQL Editor.
+3. Jalankan `supabase/seed_complete.sql` untuk data demo.
+4. Jalankan `supabase/policies_mvp_read_access.sql` untuk RLS demo/publik.
+5. Konfirmasi frontend dapat membaca data dengan anon/publishable key.
+6. Hapus ketergantungan frontend pada service-role atau secret key.
+
+> Panduan lengkap ganti project Supabase: [`docs/SUPABASE_MIGRATION.md`](SUPABASE_MIGRATION.md)
+
+---
 
 ## Anon-Only Runtime
 
-Once the database is seeded and policies are in place, the app should run with only these frontend values:
+Setelah database di-seed dan policies terpasang, aplikasi harus berjalan hanya dengan nilai frontend ini:
 
 ```env
 VITE_ENABLE_SUPABASE=true
@@ -38,10 +61,24 @@ VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-At that point:
+Pada titik ini:
+- browser tidak pernah membutuhkan service-role key
+- browser tidak pernah membutuhkan secret key
+- akses data dikontrol sepenuhnya oleh RLS
+- setup scripts tetap menjadi satu-satunya tempat yang boleh menggunakan akses service-role
 
-- the browser never needs a service-role key
-- the browser never needs a secret key
-- data access is controlled entirely by RLS
-- setup scripts remain the only place that may use service-role access
+---
 
+## File `.env.local` Contoh Lengkap
+
+```env
+# Supabase client (wajib untuk Supabase mode)
+VITE_ENABLE_SUPABASE=true
+VITE_SUPABASE_URL=https://<PROJECT-REF>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon_key>
+
+# Hanya untuk setup/seeding — JANGAN masukkan ke kode frontend
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
+```
+
+> ⚠️ File `.env.local` sudah ada di `.gitignore`. Jangan hapus atau ubah aturan ini.

@@ -8,48 +8,73 @@ Important side effects: None.
 
 # Development Plan
 
-_Current note: the live app is Supabase-first when configured, with local demo data retained as fallback preview._
+_Last updated: 2026-06-19_
 
-## Phase 1: Stabilize Shared Business Rules
+> **Catatan**: Aplikasi yang berjalan saat ini adalah Supabase-first ketika dikonfigurasi, dengan data demo lokal sebagai fallback preview.
 
-- completed certificate eligibility logic
-- completed role mapping helpers
-- completed Supabase OTP auth flow
-- completed local auth/session fallback preview
+---
 
-## Phase 2: Complete Operational MVP Modules
+## Phase 1: Stabilize Shared Business Rules ✅
 
-- completed feedback flow
-- completed attendance flow
-- completed assessment flow
-- completed payment and invoice flow
+- [x] Logika kelayakan sertifikat selesai
+- [x] Helper mapping role selesai
+- [x] Supabase OTP auth flow selesai
+- [x] Fallback auth/sesi lokal sebagai preview selesai
 
-## Phase 3: Complete Role Flows
+---
 
-- completed participant flow
-- completed trainer flow
-- completed corporate PIC flow
-- completed admin flow
+## Phase 2: Complete Operational MVP Modules ✅
 
-## Phase 4: Demo Stability and Polish
+- [x] Feedback flow selesai
+- [x] Attendance flow selesai
+- [x] Assessment flow selesai
+- [x] Payment dan invoice flow selesai
 
-- keep demo auth stable
-- keep seeded data aligned with role pages
-- keep empty states readable
-- keep invoices, certificates, and attendance usable in demo mode
+---
 
-## Phase 5: Future Migration Path
+## Phase 3: Complete Role Flows ✅
 
-- import Supabase schema and seed into the target project
-- verify role pages against Supabase-backed data
-- enable RLS after role verification, table by table
-- define Express.js API routes only if the project later needs a dedicated backend
-- add storage only when file upload requirements become active
+- [x] Participant flow selesai
+- [x] Trainer flow selesai
+- [x] Corporate PIC flow selesai
+- [x] Admin flow selesai
 
-## Immediate Next Steps
+---
 
-1. Import `supabase/schema_fixed.sql` and `supabase/seed_fixed.sql`.
-2. Verify trainer dashboard, attendance, invoice, and certificate flows against Supabase.
-3. Enable RLS policies table by table after role verification.
-4. Improve demo data coverage for edge cases and empty states.
-5. Defer bundle splitting until the MVP flow is stable.
+## Phase 4: Auth & Integration ✅
+
+- [x] Google Sign-In via Supabase OAuth diaktifkan
+- [x] Halaman Register dengan tombol "Create account"
+- [x] Halaman Login bersih (tanpa quick access/login flow info box)
+- [x] Profile user terupdate otomatis saat login Google
+- [x] My Profile bisa diakses dari semua role
+
+---
+
+## Phase 5: Demo Stability & Polish ✅
+
+- [x] Demo auth tetap stabil
+- [x] Seeded data selaras dengan halaman role
+- [x] Empty states dapat dibaca dengan jelas
+- [x] Invoice, sertifikat, dan absensi dapat digunakan di demo mode
+- [x] Trainer aktif: hanya Dr. Idha Kristiana
+
+---
+
+## Phase 6: Documentation ✅
+
+- [x] `docs/GOOGLE_OAUTH_SETUP.md` — panduan setup Google Sign-In
+- [x] `docs/SUPABASE_MIGRATION.md` — panduan ganti project Supabase
+- [x] `README.md` diperbarui dengan info terkini
+- [x] Semua file docs diperbarui
+
+---
+
+## Next Steps (Future)
+
+1. Import `supabase/schema_fixed.sql` ke project Supabase baru jika ingin ganti project.
+2. Import `supabase/seed_complete.sql` untuk data demo.
+3. Verifikasi semua role flow terhadap data Supabase.
+4. Aktifkan RLS policies tabel per tabel setelah verifikasi role.
+5. Pertimbangkan Express.js API layer hanya jika project membutuhkan backend dedicated.
+6. Tambahkan file upload storage jika kebutuhan upload aktif.
