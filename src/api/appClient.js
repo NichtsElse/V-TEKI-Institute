@@ -1863,7 +1863,27 @@ const users = {
     setCollection('User', existingUsers);
     return clone(invitedUser);
   },
+
+  async adminUpdateRole(targetEmail, newRole, newStatus) {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase.rpc('admin_update_user_role', {
+        target_email: targetEmail,
+        new_role: newRole,
+        new_status: newStatus || null,
+      });
+      if (error) throw error;
+      return data;
+    }
+    // Fallback: local storage update by email
+    const localUsers = getCollection('User');
+    const index = localUsers.findIndex((u) => u.email?.toLowerCase() === targetEmail.toLowerCase());
+    if (index === -1) throw new Error(`User with email ${targetEmail} not found`);
+    localUsers[index] = { ...localUsers[index], role: newRole, status: newStatus || localUsers[index].status, updated_date: nowIso() };
+    setCollection('User', localUsers);
+    return clone(localUsers[index]);
+  },
 };
+
 
 const entities = new Proxy(
   {},

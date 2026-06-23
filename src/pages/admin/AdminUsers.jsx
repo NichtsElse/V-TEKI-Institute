@@ -12,8 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Pencil, UserPlus, Loader2, ShieldCheck, Users, Briefcase, GraduationCap } from 'lucide-react';
+import { Pencil, ShieldCheck, Users, Briefcase, GraduationCap } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -22,6 +21,7 @@ import { useToast } from '@/components/ui/use-toast';
 const roleLabels = {
   super_admin: 'Super Admin',
   academy_admin: 'Academy Admin',
+  admin: 'Admin',
   trainer: 'Trainer',
   corporate_pic: 'Corporate PIC',
   participant: 'Participant',
@@ -30,11 +30,7 @@ const roleLabels = {
 
 export default function AdminUsers() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('participant');
-  const [inviting, setInviting] = useState(false);
   const [roleFilter, setRoleFilter] = useState('all');
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -42,8 +38,9 @@ export default function AdminUsers() {
   const { data: users = [], isLoading } = useQuery({ queryKey: ['users'], queryFn: () => appClient.entities.User.list() });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => appClient.entities.User.update(id, data),
+    mutationFn: ({ email, role, status }) => appClient.users.adminUpdateRole(email, role, status),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); setEditDialogOpen(false); toast({ title: 'User updated' }); },
+    onError: (err) => { toast({ title: 'Error updating user', description: err.message, variant: 'destructive' }); }
   });
 
   const adminCount = users.filter(u => ['super_admin', 'academy_admin'].includes(u.role)).length;
@@ -52,16 +49,6 @@ export default function AdminUsers() {
   const participantCount = users.filter(u => ['participant', 'user'].includes(u.role)).length;
 
   const filtered = roleFilter === 'all' ? users : users.filter(u => u.role === roleFilter);
-
-  const handleInvite = async () => {
-    setInviting(true);
-    await appClient.users.inviteUser(inviteEmail, ['super_admin', 'academy_admin'].includes(inviteRole) ? 'admin' : 'user');
-    setInviting(false);
-    setInviteDialogOpen(false);
-    setInviteEmail('');
-    toast({ title: 'Invitation sent' });
-  };
-
   const columns = [
     { header: 'Name', cell: (r) => <span className="font-medium">{r.full_name || '-'}</span> },
     { header: 'Email', accessor: 'email' },
@@ -101,14 +88,12 @@ export default function AdminUsers() {
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="super_admin">Super Admin</SelectItem>
             <SelectItem value="academy_admin">Academy Admin</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="trainer">Trainer</SelectItem>
             <SelectItem value="corporate_pic">Corporate PIC</SelectItem>
             <SelectItem value="participant">Participant</SelectItem>
           </SelectContent>
         </Select>
-        <Button onClick={() => setInviteDialogOpen(true)} className="bg-secondary hover:bg-secondary/90 text-white">
-          <UserPlus className="w-4 h-4 mr-2" /> Invite User
-        </Button>
       </PageHeader>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -158,29 +143,9 @@ export default function AdminUsers() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => updateMutation.mutate({ id: selected.id, data: { role: selected.role, status: selected.status } })} className="bg-secondary hover:bg-secondary/90 text-white">Update</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Invite Dialog */}
-      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Invite User</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div><Label>Email</Label><Input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="user@example.com" /></div>
-            <div><Label>Role</Label>
-              <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{Object.entries(roleLabels).map(([k,v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-muted-foreground">Invited users are created locally with a temporary password <code className="bg-muted px-1 rounded">welcome123</code> for demo purposes.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleInvite} disabled={inviting || !inviteEmail} className="bg-secondary hover:bg-secondary/90 text-white">
-              {inviting && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Send Invite
+            <Button onClick={() => updateMutation.mutate({ email: selected.email, role: selected.role, status: selected.status })} disabled={updateMutation.isPending} className="bg-secondary hover:bg-secondary/90 text-white">
+              {updateMutation.isPending && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 inline-block" />}
+              Update
             </Button>
           </DialogFooter>
         </DialogContent>

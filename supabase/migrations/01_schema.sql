@@ -1,8 +1,8 @@
--- V-TEKI MVP Supabase schema (FIXED)
--- Changes from original:
---   [FIX Bug 1] assessment_submissions: tambah kolom `answers JSONB`
---   [FIX Bug 5] assessment_submissions: tambah kolom `feedback TEXT` untuk review trainer
---   [FIX Bug 4] enrollments: tambah kolom `program_id TEXT FK -> programs`
+-- Purpose: Define and repair the Supabase public schema used by the V-TEKI application.
+-- Who uses it: Supabase SQL Editor operators and migration runners before seed/RLS scripts.
+-- Main dependencies: Supabase Postgres public schema and tables referenced by appClient entity mapping.
+-- Public/main functions: Table creation, compatibility ALTERs for older DBs, and role constraint refresh.
+-- Important side effects: Creates tables and upgrades existing tables with missing columns/constraints.
 
 -- Core identity & organization entities
 
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS users_profile (
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
   phone TEXT,
-  role TEXT NOT NULL CHECK (role IN ('super_admin', 'academy_admin', 'trainer', 'participant', 'corporate_pic', 'user')),
+  role TEXT NOT NULL CHECK (role IN ('super_admin', 'academy_admin', 'admin', 'trainer', 'participant', 'corporate_pic', 'user')),
   organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL,
   organization_name TEXT,
   status TEXT DEFAULT 'active',
@@ -280,3 +280,45 @@ CREATE TABLE IF NOT EXISTS notifications (
   status TEXT DEFAULT 'unread',
   created_date TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Compatibility upgrades for databases that were created before this fixed schema.
+ALTER TABLE enrollments
+  ADD COLUMN IF NOT EXISTS program_id TEXT;
+
+ALTER TABLE assessment_submissions
+  ADD COLUMN IF NOT EXISTS answers JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS feedback TEXT;
+
+DO $schema_fix$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_profile_role_check'
+      AND conrelid = 'public.users_profile'::regclass
+  ) THEN
+    ALTER TABLE users_profile DROP CONSTRAINT users_profile_role_check;
+  END IF;
+
+  ALTER TABLE users_profile
+    ADD CONSTRAINT users_profile_role_check
+    CHECK (role IN ('super_admin', 'academy_admin', 'admin', 'trainer', 'participant', 'corporate_pic', 'user'))
+    NOT VALID;
+
+  ALTER TABLE users_profile VALIDATE CONSTRAINT users_profile_role_check;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'enrollments_program_id_fkey'
+      AND conrelid = 'public.enrollments'::regclass
+  ) THEN
+    ALTER TABLE enrollments
+      ADD CONSTRAINT enrollments_program_id_fkey
+      FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE SET NULL
+      NOT VALID;
+
+    ALTER TABLE enrollments VALIDATE CONSTRAINT enrollments_program_id_fkey;
+  END IF;
+END
+$schema_fix$;

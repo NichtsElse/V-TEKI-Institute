@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Loader2 } from 'lucide-react';
+import { Clock, Loader2, Plus } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
@@ -33,6 +33,14 @@ export default function TrainerAttendance() {
   const [attendanceMarks, setAttendanceMarks] = useState({});
   const [joinTime, setJoinTime] = useState('09:00');
   const [leaveTime, setLeaveTime] = useState('12:00');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newSessionForm, setNewSessionForm] = useState({
+    batch_id: '',
+    session_title: '',
+    session_date: '',
+    start_time: '09:00',
+    end_time: '12:00',
+  });
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -152,6 +160,51 @@ export default function TrainerAttendance() {
     },
   });
 
+  const createSessionMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!data.batch_id || !data.session_title || !data.session_date) {
+        throw new Error('Please fill in all required fields');
+      }
+      return await appClient.entities.AttendanceSession.create({
+        batch_id: data.batch_id,
+        session_title: data.session_title,
+        session_date: data.session_date,
+        start_time: data.start_time || '-',
+        end_time: data.end_time || '-',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance-sessions-trainer'] });
+      setCreateDialogOpen(false);
+      setNewSessionForm({
+        batch_id: batches[0]?.id || '',
+        session_title: '',
+        session_date: '',
+        start_time: '09:00',
+        end_time: '12:00',
+      });
+      toast({ title: 'Class session created successfully' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Could not create session',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleOpenCreateDialog = () => {
+    setNewSessionForm({
+      batch_id: batches[0]?.id || '',
+      session_title: '',
+      session_date: format(new Date(), 'yyyy-MM-dd'),
+      start_time: '09:00',
+      end_time: '12:00',
+    });
+    setCreateDialogOpen(true);
+  };
+
   const openSessionDialog = (session) => {
     setSelectedSession(session);
     
@@ -195,7 +248,17 @@ export default function TrainerAttendance() {
       <PageHeader
         title="Attendance Tracking"
         subtitle={`${sessions.length} sessions scheduled`}
-      />
+      >
+        {trainerInfo && batches.length > 0 && (
+          <Button
+            onClick={handleOpenCreateDialog}
+            className="bg-secondary hover:bg-secondary/90 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Session
+          </Button>
+        )}
+      </PageHeader>
 
       {!trainerInfo && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
@@ -268,6 +331,85 @@ export default function TrainerAttendance() {
           <p className="text-muted-foreground">No sessions scheduled for your batches.</p>
         </div>
       )}
+
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Class Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="batch">Batch / Class</Label>
+              <Select
+                value={newSessionForm.batch_id}
+                onValueChange={(value) => setNewSessionForm({ ...newSessionForm, batch_id: value })}
+              >
+                <SelectTrigger id="batch">
+                  <SelectValue placeholder="Select a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id}>
+                      {batch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="title">Session Title</Label>
+              <Input
+                id="title"
+                placeholder="e.g. Session 1: Introduction to AI"
+                value={newSessionForm.session_title}
+                onChange={(e) => setNewSessionForm({ ...newSessionForm, session_title: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="date">Session Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={newSessionForm.session_date}
+                onChange={(e) => setNewSessionForm({ ...newSessionForm, session_date: e.target.value })}
+              />
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Label htmlFor="startTime">Start Time</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={newSessionForm.start_time}
+                  onChange={(e) => setNewSessionForm({ ...newSessionForm, start_time: e.target.value })}
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="endTime">End Time</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={newSessionForm.end_time}
+                  onChange={(e) => setNewSessionForm({ ...newSessionForm, end_time: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createSessionMutation.mutate(newSessionForm)}
+              disabled={createSessionMutation.isPending}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {createSessionMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Create Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={sessionDialogOpen} onOpenChange={setSessionDialogOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">

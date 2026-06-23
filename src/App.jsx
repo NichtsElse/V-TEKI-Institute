@@ -30,6 +30,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 // Admin pages
+import AdminLogin from '@/pages/admin/AdminLogin';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminPrograms from '@/pages/admin/AdminPrograms';
 import AdminBatches from '@/pages/admin/AdminBatches';
@@ -92,6 +93,7 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Auth routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/admin" element={<AdminLogin />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />

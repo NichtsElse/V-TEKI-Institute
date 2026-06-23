@@ -26,8 +26,16 @@ export default function AdminAttendance() {
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState('all');
   const [editingRecord, setEditingRecord] = useState(null);
-  const [form, setForm] = useState({ registration_id: '', batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
-  const [bulkForm, setBulkForm] = useState({ batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+  const [form, setForm] = useState({ registration_id: '', batch_id: '', attendance_session_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+  const [bulkForm, setBulkForm] = useState({ batch_id: '', attendance_session_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+  const [sessionCreateDialogOpen, setSessionCreateDialogOpen] = useState(false);
+  const [newSessionForm, setNewSessionForm] = useState({
+    batch_id: '',
+    session_title: '',
+    session_date: '',
+    start_time: '09:00',
+    end_time: '12:00',
+  });
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -117,10 +125,55 @@ export default function AdminAttendance() {
       qc.invalidateQueries({ queryKey: ['registrations'] });
       setDialogOpen(false);
       setEditingRecord(null);
-      setForm({ registration_id: '', batch_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+      setForm({ registration_id: '', batch_id: '', attendance_session_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
       toast({ title: 'Attendance updated' });
     },
   });
+
+  const createSessionMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!data.batch_id || !data.session_title || !data.session_date) {
+        throw new Error('Please fill in all required fields');
+      }
+      return await appClient.entities.AttendanceSession.create({
+        batch_id: data.batch_id,
+        session_title: data.session_title,
+        session_date: data.session_date,
+        start_time: data.start_time || '-',
+        end_time: data.end_time || '-',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance-sessions'] });
+      setSessionCreateDialogOpen(false);
+      setNewSessionForm({
+        batch_id: batches[0]?.id || '',
+        session_title: '',
+        session_date: '',
+        start_time: '09:00',
+        end_time: '12:00',
+      });
+      toast({ title: 'Class session created successfully' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Could not create session',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleOpenCreateDialog = () => {
+    setNewSessionForm({
+      batch_id: batches[0]?.id || '',
+      session_title: '',
+      session_date: format(new Date(), 'yyyy-MM-dd'),
+      start_time: '09:00',
+      end_time: '12:00',
+    });
+    setSessionCreateDialogOpen(true);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (record) => {
@@ -188,6 +241,12 @@ export default function AdminAttendance() {
 
   const filtered = selectedBatch === 'all' ? attendanceRecords : attendanceRecords.filter(a => a.batch_id === selectedBatch);
   const batchRegs = form.batch_id ? registrations.filter((r) => r.batch_id === form.batch_id) : [];
+  const batchSessions = form.batch_id
+    ? attendanceSessions.filter(s => s.batch_id === form.batch_id)
+    : [];
+  const bulkBatchSessions = bulkForm.batch_id
+    ? attendanceSessions.filter(s => s.batch_id === bulkForm.batch_id)
+    : [];
   const presentLikeCount = filtered.filter((record) => ['present', 'late', 'excused'].includes(record.status)).length;
   const attendanceRate = filtered.length > 0 ? Math.round((presentLikeCount / filtered.length) * 100) : 0;
   const sessionCount = selectedBatch === 'all'
@@ -208,10 +267,16 @@ export default function AdminAttendance() {
           size="sm"
           className="h-8 w-8 p-0"
           onClick={() => {
+            const matchingSession = attendanceSessions.find(s => 
+              s.batch_id === r.batch_id && 
+              s.session_date === r.session_date && 
+              s.session_title === r.session_title
+            );
             setEditingRecord(r);
             setForm({
               registration_id: r.registration_id,
               batch_id: r.batch_id,
+              attendance_session_id: r.attendance_session_id || matchingSession?.id || '',
               session_date: r.session_date || '',
               session_title: r.session_title || '',
               status: r.status || 'present',
@@ -248,10 +313,19 @@ export default function AdminAttendance() {
           </SelectContent>
         </Select>
         <div className="flex gap-2">
-          <Button onClick={() => setBulkDialogOpen(true)} variant="outline">
+          <Button onClick={handleOpenCreateDialog} variant="outline">
+            <Plus className="w-4 h-4 mr-2" /> New Session
+          </Button>
+          <Button onClick={() => {
+            setBulkForm({ batch_id: '', attendance_session_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+            setBulkDialogOpen(true);
+          }} variant="outline">
             Bulk Check-in
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="bg-secondary hover:bg-secondary/90 text-white">
+          <Button onClick={() => {
+            setForm({ registration_id: '', batch_id: '', attendance_session_id: '', session_date: '', session_title: '', status: 'present', join_time: '09:00', leave_time: '12:00' });
+            setDialogOpen(true);
+          }} className="bg-secondary hover:bg-secondary/90 text-white">
             <Plus className="w-4 h-4 mr-2" /> Mark Attendance
           </Button>
         </div>
@@ -279,7 +353,7 @@ export default function AdminAttendance() {
           <DialogHeader><DialogTitle>{editingRecord ? 'Edit Attendance' : 'Mark Attendance'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Batch</Label>
-              <Select value={form.batch_id} onValueChange={v => setForm({...form, batch_id: v})}>
+              <Select value={form.batch_id} onValueChange={v => setForm({...form, batch_id: v, attendance_session_id: '', session_date: '', session_title: ''})}>
                 <SelectTrigger><SelectValue placeholder="Select batch" /></SelectTrigger>
                 <SelectContent>{batches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
               </Select>
@@ -292,8 +366,40 @@ export default function AdminAttendance() {
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Session Date</Label><Input type="date" value={form.session_date} onChange={e => setForm({...form, session_date: e.target.value})} /></div>
-            <div><Label>Session Title</Label><Input value={form.session_title} onChange={e => setForm({...form, session_title: e.target.value})} /></div>
+            <div><Label>Session</Label>
+              {batchSessions.length > 0 ? (
+                <Select 
+                  value={form.attendance_session_id} 
+                  onValueChange={v => {
+                    const session = batchSessions.find(s => s.id === v);
+                    if (session) {
+                      setForm({
+                        ...form,
+                        attendance_session_id: v,
+                        session_title: session.session_title,
+                        session_date: session.session_date,
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select session" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {batchSessions.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.session_title} ({s.session_date ? format(new Date(`${s.session_date}T00:00`), 'MMM d, yyyy') : '-'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-xs text-amber-600 bg-amber-50 p-2.5 rounded border border-amber-200">
+                  No sessions found for this batch. Please create a session first.
+                </div>
+              )}
+            </div>
+            <div><Label>Session Date</Label><Input type="date" value={form.session_date} disabled className="bg-muted text-muted-foreground" /></div>
             <div><Label>Join Time</Label><Input type="time" value={form.join_time} onChange={e => setForm({...form, join_time: e.target.value})} /></div>
             <div><Label>Leave Time</Label><Input type="time" value={form.leave_time} onChange={e => setForm({...form, leave_time: e.target.value})} /></div>
             <div><Label>Status</Label>
@@ -331,13 +437,45 @@ export default function AdminAttendance() {
           <DialogHeader><DialogTitle>Bulk Check-in</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Batch</Label>
-              <Select value={bulkForm.batch_id} onValueChange={v => setBulkForm({...bulkForm, batch_id: v})}>
+              <Select value={bulkForm.batch_id} onValueChange={v => setBulkForm({...bulkForm, batch_id: v, attendance_session_id: '', session_date: '', session_title: ''})}>
                 <SelectTrigger><SelectValue placeholder="Select batch" /></SelectTrigger>
                 <SelectContent>{batches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Session Date</Label><Input type="date" value={bulkForm.session_date} onChange={e => setBulkForm({...bulkForm, session_date: e.target.value})} /></div>
-            <div><Label>Session Title</Label><Input value={bulkForm.session_title} onChange={e => setBulkForm({...bulkForm, session_title: e.target.value})} /></div>
+            <div><Label>Session</Label>
+              {bulkBatchSessions.length > 0 ? (
+                <Select 
+                  value={bulkForm.attendance_session_id} 
+                  onValueChange={v => {
+                    const session = bulkBatchSessions.find(s => s.id === v);
+                    if (session) {
+                      setBulkForm({
+                        ...bulkForm,
+                        attendance_session_id: v,
+                        session_title: session.session_title,
+                        session_date: session.session_date,
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select session" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bulkBatchSessions.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.session_title} ({s.session_date ? format(new Date(`${s.session_date}T00:00`), 'MMM d, yyyy') : '-'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-xs text-amber-600 bg-amber-50 p-2.5 rounded border border-amber-200">
+                  No sessions found for this batch. Please create a session first.
+                </div>
+              )}
+            </div>
+            <div><Label>Session Date</Label><Input type="date" value={bulkForm.session_date} disabled className="bg-muted text-muted-foreground" /></div>
             <div><Label>Join Time</Label><Input type="time" value={bulkForm.join_time} onChange={e => setBulkForm({...bulkForm, join_time: e.target.value})} /></div>
             <div><Label>Leave Time</Label><Input type="time" value={bulkForm.leave_time} onChange={e => setBulkForm({...bulkForm, leave_time: e.target.value})} /></div>
             <div><Label>Status</Label>
@@ -354,6 +492,84 @@ export default function AdminAttendance() {
             <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>Cancel</Button>
             <Button onClick={() => bulkMutation.mutate(bulkForm)} disabled={bulkMutation.isPending} className="bg-secondary hover:bg-secondary/90 text-white">
               {bulkMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Bulk Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={sessionCreateDialogOpen} onOpenChange={setSessionCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Class Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="batch">Batch / Class</Label>
+              <Select
+                value={newSessionForm.batch_id}
+                onValueChange={(value) => setNewSessionForm({ ...newSessionForm, batch_id: value })}
+              >
+                <SelectTrigger id="batch">
+                  <SelectValue placeholder="Select a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id}>
+                      {batch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="title">Session Title</Label>
+              <Input
+                id="title"
+                placeholder="e.g. Session 1: Introduction to AI"
+                value={newSessionForm.session_title}
+                onChange={(e) => setNewSessionForm({ ...newSessionForm, session_title: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="date">Session Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={newSessionForm.session_date}
+                onChange={(e) => setNewSessionForm({ ...newSessionForm, session_date: e.target.value })}
+              />
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Label htmlFor="startTime">Start Time</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={newSessionForm.start_time}
+                  onChange={(e) => setNewSessionForm({ ...newSessionForm, start_time: e.target.value })}
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="endTime">End Time</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={newSessionForm.end_time}
+                  onChange={(e) => setNewSessionForm({ ...newSessionForm, end_time: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSessionCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createSessionMutation.mutate(newSessionForm)}
+              disabled={createSessionMutation.isPending}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {createSessionMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Create Session
             </Button>
           </DialogFooter>
         </DialogContent>

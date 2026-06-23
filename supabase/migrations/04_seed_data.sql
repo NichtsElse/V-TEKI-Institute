@@ -3,7 +3,29 @@
 -- Invoices, Enrollments, Payments, Attendance, Assessments, Feedback, dan Certificates.
 
 -- Kosongkan data lama agar tidak ada error duplikat (UNIQUE constraint)
-TRUNCATE TABLE organizations, users_profile, trainers, programs, batches, invoices, enrollments, payments, certificates CASCADE;
+-- Purpose: Seed complete demo data for V-TEKI Supabase migrations and local verification.
+-- Who uses it: Supabase SQL Editor operators, migration runners, and scripts/seed-supabase-from-sql.mjs.
+-- Main dependencies: Tables from schema_fixed.sql and confirmed demo users from seed_auth_users.sql.
+-- Public/main functions: Idempotent INSERT/UPSERT blocks for demo organizations, users, catalog, learning activity, and outcomes.
+-- Important side effects: Truncates demo data tables with CASCADE, then upserts deterministic demo rows.
+
+TRUNCATE TABLE
+  feedback,
+  assessment_submissions,
+  assessment_questions,
+  assessments,
+  attendance_records,
+  attendance_sessions,
+  certificates,
+  payments,
+  enrollments,
+  invoices,
+  batches,
+  programs,
+  trainers,
+  users_profile,
+  organizations
+CASCADE;
 
 -- 1. Organizations
 INSERT INTO organizations (id, name, industry, contact_email) VALUES
@@ -108,15 +130,77 @@ INSERT INTO assessments (id, batch_id, program_id, assessment_type, title, descr
   ('assess_post_cloud', 'batch_cloud_may', 'prog_cloud_arch', 'post_assessment', 'Cloud Arch Review', 'Final cloud check', 75, 'published')
 ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title;
 
--- 13. Assessment Submissions
+-- 13. Assessment Questions
+INSERT INTO assessment_questions (id, assessment_id, question_text, question_type, options, correct_answer, points) VALUES
+  (
+    'q1_pre_ai',
+    'assess_pre_ai',
+    'What is the primary benefit of the topics covered in this program?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"Theoretical knowledge only"},{"id":"opt2","text":"Practical application and real-world workflow improvement"},{"id":"opt3","text":"Certification without learning"},{"id":"opt4","text":"Social networking only"}]'::jsonb,
+    'opt2',
+    20
+  ),
+  (
+    'q2_pre_ai',
+    'assess_pre_ai',
+    'Which of the following best describes the core learning objective?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"Random fact memorization"},{"id":"opt2","text":"Structured skill development and mastery"},{"id":"opt3","text":"Entertainment value only"},{"id":"opt4","text":"Corporate espionage techniques"}]'::jsonb,
+    'opt2',
+    20
+  ),
+  (
+    'q3_pre_ai',
+    'assess_pre_ai',
+    'How would you apply what you learned to your role?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"Ignore it completely"},{"id":"opt2","text":"Integrate into workflows and share with team"},{"id":"opt3","text":"Keep it secret"},{"id":"opt4","text":"Use only on Mondays"}]'::jsonb,
+    'opt2',
+    20
+  ),
+  (
+    'q4_pre_ai',
+    'assess_pre_ai',
+    'What is the expected outcome of successful completion?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"Nothing - just attendance"},{"id":"opt2","text":"Competency development and readiness to execute"},{"id":"opt3","text":"Certificate printing only"},{"id":"opt4","text":"Free refreshments only"}]'::jsonb,
+    'opt2',
+    20
+  ),
+  (
+    'q5_pre_ai',
+    'assess_pre_ai',
+    'How would you measure success after this program?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"By the certificate on the wall"},{"id":"opt2","text":"By tangible improvements in work processes"},{"id":"opt3","text":"By attendance only"},{"id":"opt4","text":"Success is not measurable"}]'::jsonb,
+    'opt2',
+    20
+  ),
+  (
+    'q1_post_cloud',
+    'assess_post_cloud',
+    'What is the main benefit of a well-designed cloud architecture?',
+    'multiple_choice',
+    '[{"id":"opt1","text":"Higher manual workload"},{"id":"opt2","text":"Better scalability, reliability, and cost control"},{"id":"opt3","text":"No need for security controls"},{"id":"opt4","text":"Only prettier diagrams"}]'::jsonb,
+    'opt2',
+    100
+  )
+ON CONFLICT (id) DO UPDATE
+  SET question_text=EXCLUDED.question_text,
+      options=EXCLUDED.options,
+      correct_answer=EXCLUDED.correct_answer,
+      points=EXCLUDED.points;
+
+-- 14. Assessment Submissions
 INSERT INTO assessment_submissions (id, assessment_id, registration_id, participant_email, title, score, total_points, percentage, passed, status, answers) VALUES
   ('ares_001', 'assess_pre_ai', 'reg_001', 'aulia.ramadhan@example.com', 'AI Readiness Baseline', 32, 50, 64, FALSE, 'reviewed', '[]'::jsonb),
   ('ares_002', 'assess_post_cloud', 'reg_004', 'cindy.wijaya@example.com', 'Cloud Arch Review', 46, 50, 92, TRUE, 'reviewed', '[]'::jsonb),
   ('ares_003', 'assess_post_cloud', 'reg_005', 'dimas.pratama@example.com', 'Cloud Arch Review', 42, 50, 84, TRUE, 'reviewed', '[]'::jsonb)
 ON CONFLICT (id) DO UPDATE SET score=EXCLUDED.score;
 
--- 14. Feedback
+-- 15. Feedback
 INSERT INTO feedback (id, registration_id, batch_id, batch_name, participant_name, participant_email, program_name, trainer_name, trainer_rating, material_rating, program_rating, satisfaction_score, comments) VALUES
-    ('fb_001', 'reg_demo_001', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Aulia Ramadhan', 'participant@vteki.local', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 5, 4, 5, 5, 'Very practical program. The automation workshop and governance session were especially useful.'),
-    ('fb_002', 'reg_demo_005', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Meylani Putri', 'meylani.putri@example.com', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 4, 5, 4, 4, 'Good balance between business examples and practical exercises for team adoption.')
+    ('fb_001', 'reg_001', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Aulia Ramadhan', 'aulia.ramadhan@example.com', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 5, 4, 5, 5, 'Very practical program. The automation workshop and governance session were especially useful.'),
+    ('fb_002', 'reg_005', 'batch_ai_foundation_july', 'Applied AI for Business Teams - July 2026', 'Eka Putri', 'eka.putri@example.com', 'Applied AI for Business Teams', 'Dr. Idha Kristiana, S.Kom., MMSI., SMIEEE', 4, 5, 4, 4, 'Good balance between business examples and practical exercises for team adoption.')
 ON CONFLICT (id) DO UPDATE SET comments=EXCLUDED.comments;

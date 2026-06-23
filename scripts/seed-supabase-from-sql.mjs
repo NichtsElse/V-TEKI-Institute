@@ -1,7 +1,7 @@
 /**
  * Purpose: Seed the configured Supabase project from the local SQL seed file through Supabase REST.
  * Used by: Local migration/setup sessions after `.env.local` has Supabase keys.
- * Main dependencies: dotenv, @supabase/supabase-js, and `supabase/seed_complete.sql`.
+ * Main dependencies: dotenv, @supabase/supabase-js, SUPABASE_SERVICE_ROLE_KEY, and `supabase/seed_complete.sql`.
  * Public/main functions: Script entry point.
  * Important side effects: Deletes and upserts rows in configured Supabase tables.
  */
@@ -12,13 +12,10 @@ import { createClient } from '@supabase/supabase-js';
 config({ path: '.env.local', quiet: true });
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase URL or key in .env.local');
+  throw new Error('Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -72,6 +69,9 @@ const parseSqlValue = (rawValue) => {
   if (/^null$/i.test(value)) return null;
   if (/^true$/i.test(value)) return true;
   if (/^false$/i.test(value)) return false;
+  if (/^'.*'::jsonb$/i.test(value)) {
+    return JSON.parse(value.replace(/::jsonb$/i, '').slice(1, -1).replace(/''/g, "'"));
+  }
   if (/^'.*'$/.test(value)) return value.slice(1, -1).replace(/''/g, "'");
   if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
   return value;

@@ -106,20 +106,20 @@ export default function TrainerAssessments() {
 
       return updated;
     },
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: ['assessment-results-trainer'] });
-        qc.invalidateQueries({ queryKey: ['registrations'] });
-        setReviewDialogOpen(false);
-        toast({ title: 'Assessment reviewed and saved' });
-      },
-      onError: (error) => {
-        toast({
-          title: 'Failed to save review',
-          description: error?.message || 'Please check trainer permissions and try again.',
-          variant: 'destructive',
-        });
-      },
-    });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['assessment-results-trainer'] });
+      qc.invalidateQueries({ queryKey: ['registrations'] });
+      setReviewDialogOpen(false);
+      toast({ title: 'Assessment reviewed and saved' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to save review',
+        description: error?.message || 'Please check trainer permissions and try again.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const openReview = (result) => {
     setSelected({ ...result, answers: normalizeAnswers(result.answers) });

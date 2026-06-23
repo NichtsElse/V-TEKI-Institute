@@ -7,12 +7,10 @@
  */
 import React from 'react';
 import { appClient } from '@/api/appClient';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Star, MessageSquare, CheckCircle, Clock, Wand2, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Star, MessageSquare, CheckCircle, Clock } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
-import { Button } from '@/components/ui/button';
 import DataTable from '@/components/shared/DataTable';
-import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
 function StarRating({ value }) {
@@ -26,8 +24,6 @@ function StarRating({ value }) {
 }
 
 export default function AdminFeedback() {
-  const qc = useQueryClient();
-  const { toast } = useToast();
   const { data: feedback = [], isLoading } = useQuery({ queryKey: ['feedback'], queryFn: () => appClient.entities.Feedback.list('-created_date') });
   const { data: registrations = [] } = useQuery({ queryKey: ['registrations'], queryFn: () => appClient.entities.Registration.list() });
 
@@ -61,43 +57,9 @@ export default function AdminFeedback() {
     { label: 'Avg Satisfaction', value: `${avgSatisfaction}/5`, icon: Star, color: 'text-accent' },
   ];
 
-  const simulateFeedbackMutation = useMutation({
-    mutationFn: async () => {
-      const pendingRegs = registrations.filter(r => r.status === 'confirmed' && r.feedback_status !== 'submitted');
-      for (const reg of pendingRegs) {
-        await appClient.entities.Feedback.create({
-          registration_id: reg.id,
-          batch_id: reg.batch_id,
-          batch_name: reg.batch_name,
-          participant_name: reg.full_name,
-          participant_email: reg.email,
-          program_name: reg.program_name,
-          trainer_name: 'Simulated Trainer',
-          trainer_rating: 5,
-          material_rating: 4,
-          program_rating: 5,
-          satisfaction_score: 5,
-          comments: 'Simulated feedback for completion.',
-        });
-        await appClient.entities.Registration.update(reg.id, { feedback_status: 'submitted', feedback_submitted: true });
-      }
-      return pendingRegs.length;
-    },
-    onSuccess: (count) => {
-      qc.invalidateQueries({ queryKey: ['feedback'] });
-      qc.invalidateQueries({ queryKey: ['registrations'] });
-      toast({ title: `Simulated ${count} feedback records` });
-    },
-  });
-
   return (
     <div>
-      <PageHeader title="Feedback" subtitle={`${feedback.length} responses from ${confirmedEnrollments} confirmed enrollments`}>
-        <Button onClick={() => simulateFeedbackMutation.mutate()} disabled={simulateFeedbackMutation.isPending || pendingFeedback === 0} variant="outline">
-          {simulateFeedbackMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-          Simulate Feedback
-        </Button>
-      </PageHeader>
+      <PageHeader title="Feedback" subtitle={`${feedback.length} responses from ${confirmedEnrollments} confirmed enrollments`} />
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {summaryCards.map(card => (

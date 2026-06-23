@@ -29,7 +29,7 @@ const navGroups = {
     { label: 'Certificates', icon: Award, path: '/admin/certificates' },
     { label: 'Feedback', icon: MessageSquare, path: '/admin/feedback' },
     { label: 'Trainers', icon: UserCog, path: '/admin/trainers' },
-    { label: 'Users', icon: Shield, path: '/admin/users' },
+    { label: 'Assign Roles', icon: Shield, path: '/admin/users' },
     { label: 'Reports', icon: BarChart3, path: '/admin/reports' },
   ],
   super_admin: [
@@ -43,7 +43,7 @@ const navGroups = {
     { label: 'Certificates', icon: Award, path: '/admin/certificates' },
     { label: 'Feedback', icon: MessageSquare, path: '/admin/feedback' },
     { label: 'Trainers', icon: UserCog, path: '/admin/trainers' },
-    { label: 'Users', icon: Shield, path: '/admin/users' },
+    { label: 'Assign Roles', icon: Shield, path: '/admin/users' },
     { label: 'Reports', icon: BarChart3, path: '/admin/reports' },
   ],
   academy_admin: [
@@ -57,6 +57,7 @@ const navGroups = {
     { label: 'Certificates', icon: Award, path: '/admin/certificates' },
     { label: 'Feedback', icon: MessageSquare, path: '/admin/feedback' },
     { label: 'Trainers', icon: UserCog, path: '/admin/trainers' },
+    { label: 'Assign Roles', icon: Shield, path: '/admin/users' },
     { label: 'Reports', icon: BarChart3, path: '/admin/reports' },
   ],
   trainer: [
@@ -144,8 +145,11 @@ export default function Sidebar({ user }) {
 
       {/* User & Logout */}
       <div className={cn("px-3 py-4 border-t border-sidebar-border", collapsed && "px-2")}>
-        {!collapsed && (
-          <div className="flex items-center gap-3 px-3 py-2 mb-2">
+        {!collapsed ? (
+          <Link 
+            to="/participant/profile" 
+            className="flex items-center gap-3 px-3 py-2 mb-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors cursor-pointer"
+          >
             <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-bold text-sidebar-foreground">
               {user?.full_name?.[0] || 'U'}
             </div>
@@ -153,7 +157,14 @@ export default function Sidebar({ user }) {
               <p className="text-xs font-medium text-sidebar-foreground truncate">{user?.full_name || 'User'}</p>
               <p className="text-[10px] text-sidebar-foreground/50 capitalize">{role.replace('_', ' ')}</p>
             </div>
-          </div>
+          </Link>
+        ) : (
+          <Link 
+            to="/participant/profile" 
+            className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors cursor-pointer text-xs font-bold text-sidebar-foreground"
+          >
+            {user?.full_name?.[0] || 'U'}
+          </Link>
         )}
         <button
           onClick={handleLogout}
@@ -162,8 +173,6 @@ export default function Sidebar({ user }) {
             "text-sidebar-foreground/50 hover:text-red-400 hover:bg-sidebar-accent transition-colors",
             collapsed && "justify-center px-2"
           )}
-
-
         >
           <LogOut className="w-[18px] h-[18px]" />
           {!collapsed && <span>Logout</span>}
