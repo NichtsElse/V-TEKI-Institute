@@ -9,99 +9,99 @@
 const ENTITY_MAPPING = {
   // Priority 1: Core identity entities
   User: {
-    supabaseTable: 'users_profile',
+    supabaseTable: 'vi_users_profile',
     priority: 1,
     description: 'User profiles (extends Supabase auth.users)',
   },
   Trainer: {
-    supabaseTable: 'trainers',
+    supabaseTable: 'vi_trainers',
     priority: 1,
     description: 'Trainer profiles',
   },
   Organization: {
-    supabaseTable: 'organizations',
+    supabaseTable: 'vi_organizations',
     priority: 1,
     description: 'Corporate organizations',
   },
 
   // Priority 2: Learning catalog entities
   Program: {
-    supabaseTable: 'programs',
+    supabaseTable: 'vi_programs',
     priority: 2,
     description: 'Training programs',
   },
   Batch: {
-    supabaseTable: 'batches',
+    supabaseTable: 'vi_batches',
     priority: 2,
     description: 'Program batches / cohorts',
   },
 
   // Priority 3: Enrollment and payment entities
   Registration: {
-    supabaseTable: 'enrollments',
+    supabaseTable: 'vi_enrollments',
     priority: 3,
     description: 'Enrollment (Registration) records',
     aliases: ['Enrollment'],
   },
   Invoice: {
-    supabaseTable: 'invoices',
+    supabaseTable: 'vi_invoices',
     priority: 3,
     description: 'Invoices for billing',
   },
   Payment: {
-    supabaseTable: 'payments',
+    supabaseTable: 'vi_payments',
     priority: 3,
     description: 'Payment records',
   },
 
   // Priority 4: Learning activity entities
   Assessment: {
-    supabaseTable: 'assessments',
+    supabaseTable: 'vi_assessments',
     priority: 4,
     description: 'Assessment definitions',
   },
   AssessmentQuestion: {
-    supabaseTable: 'assessment_questions',
+    supabaseTable: 'vi_assessment_questions',
     priority: 4,
     description: 'Assessment question definitions',
   },
   AssessmentResult: {
-    supabaseTable: 'assessment_submissions',
+    supabaseTable: 'vi_assessment_submissions',
     priority: 4,
     description: 'Assessment submission results',
     aliases: ['AssessmentSubmission'],
   },
   AttendanceSession: {
-    supabaseTable: 'attendance_sessions',
+    supabaseTable: 'vi_attendance_sessions',
     priority: 4,
     description: 'Attendance session definitions',
   },
   AttendanceRecord: {
-    supabaseTable: 'attendance_records',
+    supabaseTable: 'vi_attendance_records',
     priority: 4,
     description: 'Individual attendance records',
   },
 
   // Priority 5: Feedback and completion entities
   Feedback: {
-    supabaseTable: 'feedback',
+    supabaseTable: 'vi_feedback',
     priority: 5,
     description: 'Program feedback and ratings',
   },
   Certificate: {
-    supabaseTable: 'certificates',
+    supabaseTable: 'vi_certificates',
     priority: 5,
     description: 'Completion certificates',
   },
 
   // Aliases and variations
   Attendance: {
-    supabaseTable: 'attendance_records',
+    supabaseTable: 'vi_attendance_records',
     priority: 4,
     description: 'Attendance records (alias)',
   },
   CorporateRegistration: {
-    supabaseTable: 'enrollments',
+    supabaseTable: 'vi_enrollments',
     priority: 3,
     description: 'Corporate registrations (alias for enrollments)',
   },

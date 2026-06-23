@@ -1253,23 +1253,23 @@ const sortItems = (items, orderBy) => {
 };
 
 const tableMap = {
-  Program: 'programs',
-  Batch: 'batches',
-  Registration: 'enrollments',
-  User: 'users_profile',
-  Payment: 'payments',
-  Invoice: 'invoices',
-  Assessment: 'assessments',
-  AssessmentQuestion: 'assessment_questions',
-  AssessmentResult: 'assessment_submissions',
-  AttendanceSession: 'attendance_sessions',
-  AttendanceRecord: 'attendance_records',
-  Attendance: 'attendance_records',
-  Feedback: 'feedback',
-  Certificate: 'certificates',
-  Trainer: 'trainers',
-  Organization: 'organizations',
-  CorporateRegistration: 'enrollments',
+  Program: 'vi_programs',
+  Batch: 'vi_batches',
+  Registration: 'vi_enrollments',
+  User: 'vi_users_profile',
+  Payment: 'vi_payments',
+  Invoice: 'vi_invoices',
+  Assessment: 'vi_assessments',
+  AssessmentQuestion: 'vi_assessment_questions',
+  AssessmentResult: 'vi_assessment_submissions',
+  AttendanceSession: 'vi_attendance_sessions',
+  AttendanceRecord: 'vi_attendance_records',
+  Attendance: 'vi_attendance_records',
+  Feedback: 'vi_feedback',
+  Certificate: 'vi_certificates',
+  Trainer: 'vi_trainers',
+  Organization: 'vi_organizations',
+  CorporateRegistration: 'vi_enrollments',
 };
 
 const createEntityApi = (entityName) => {
@@ -1502,12 +1502,12 @@ const createSupabaseAuthSession = async (email, password, pendingUser = {}) => {
 const getDemoTrainerUser = () => getCollection('User').find((entry) => entry.email?.toLowerCase() === DEMO_TRAINER_EMAIL) || null;
 
 const fetchUserProfile = async (userId, email) => {
-  const { data: profile, error } = await supabase.from('users_profile').select('*').eq('id', userId).maybeSingle();
+  const { data: profile, error } = await supabase.from('vi_users_profile').select('*').eq('id', userId).maybeSingle();
   if (error) throw error;
   if (profile || !email) return profile;
 
   const { data: emailProfile, error: emailError } = await supabase
-    .from('users_profile')
+    .from('vi_users_profile')
     .select('*')
     .eq('email', email)
     .maybeSingle();
@@ -1544,7 +1544,7 @@ const ensureSupabaseUserProfile = async (authUser, overrides = {}) => {
         email: DEMO_TRAINER_EMAIL,
       };
       const { data, error } = await supabase
-        .from('users_profile')
+        .from('vi_users_profile')
         .upsert(normalizedTrainerProfile, { onConflict: 'id' })
         .select()
         .single();
@@ -1569,7 +1569,7 @@ const ensureSupabaseUserProfile = async (authUser, overrides = {}) => {
   };
 
   const { data, error } = await supabase
-    .from('users_profile')
+    .from('vi_users_profile')
     .upsert(profile, { onConflict: 'id' })
     .select()
     .single();

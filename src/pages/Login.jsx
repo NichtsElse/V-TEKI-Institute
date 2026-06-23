@@ -29,7 +29,12 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await appClient.auth.loginViaEmailPassword(email.trim(), password);
+      const loggedUser = await appClient.auth.loginViaEmailPassword(email.trim(), password);
+      if (loggedUser && ["admin", "super_admin", "academy_admin"].includes(loggedUser.role)) {
+        await appClient.auth.logout();
+        setError("Akses ditolak. Admin harus login melalui Portal Admin.");
+        return;
+      }
       window.location.href = redirectUrl;
     } catch (err) {
       setError(err.message || "Invalid email or password");

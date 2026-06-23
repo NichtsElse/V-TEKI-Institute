@@ -22,78 +22,78 @@ describe('Entity Mapping Module', () => {
       expect(entityNames.length).toBeGreaterThanOrEqual(14);
     });
 
-    it('should include User entity mapping to users_profile', () => {
-      expect(ENTITY_MAPPING.User.supabaseTable).toBe('users_profile');
+    it('should include User entity mapping to vi_users_profile', () => {
+      expect(ENTITY_MAPPING.User.supabaseTable).toBe('vi_users_profile');
       expect(ENTITY_MAPPING.User.priority).toBe(1);
     });
 
-    it('should include Trainer entity mapping to trainers', () => {
-      expect(ENTITY_MAPPING.Trainer.supabaseTable).toBe('trainers');
+    it('should include Trainer entity mapping to vi_trainers', () => {
+      expect(ENTITY_MAPPING.Trainer.supabaseTable).toBe('vi_trainers');
       expect(ENTITY_MAPPING.Trainer.priority).toBe(1);
     });
 
-    it('should include Organization entity mapping to organizations', () => {
-      expect(ENTITY_MAPPING.Organization.supabaseTable).toBe('organizations');
+    it('should include Organization entity mapping to vi_organizations', () => {
+      expect(ENTITY_MAPPING.Organization.supabaseTable).toBe('vi_organizations');
       expect(ENTITY_MAPPING.Organization.priority).toBe(1);
     });
 
-    it('should include Program entity mapping to programs', () => {
-      expect(ENTITY_MAPPING.Program.supabaseTable).toBe('programs');
+    it('should include Program entity mapping to vi_programs', () => {
+      expect(ENTITY_MAPPING.Program.supabaseTable).toBe('vi_programs');
       expect(ENTITY_MAPPING.Program.priority).toBe(2);
     });
 
-    it('should include Batch entity mapping to batches', () => {
-      expect(ENTITY_MAPPING.Batch.supabaseTable).toBe('batches');
+    it('should include Batch entity mapping to vi_batches', () => {
+      expect(ENTITY_MAPPING.Batch.supabaseTable).toBe('vi_batches');
       expect(ENTITY_MAPPING.Batch.priority).toBe(2);
     });
 
-    it('should include Registration entity mapping to enrollments', () => {
-      expect(ENTITY_MAPPING.Registration.supabaseTable).toBe('enrollments');
+    it('should include Registration entity mapping to vi_enrollments', () => {
+      expect(ENTITY_MAPPING.Registration.supabaseTable).toBe('vi_enrollments');
       expect(ENTITY_MAPPING.Registration.priority).toBe(3);
     });
 
-    it('should include Payment entity mapping to payments', () => {
-      expect(ENTITY_MAPPING.Payment.supabaseTable).toBe('payments');
+    it('should include Payment entity mapping to vi_payments', () => {
+      expect(ENTITY_MAPPING.Payment.supabaseTable).toBe('vi_payments');
       expect(ENTITY_MAPPING.Payment.priority).toBe(3);
     });
 
-    it('should include Invoice entity mapping to invoices', () => {
-      expect(ENTITY_MAPPING.Invoice.supabaseTable).toBe('invoices');
+    it('should include Invoice entity mapping to vi_invoices', () => {
+      expect(ENTITY_MAPPING.Invoice.supabaseTable).toBe('vi_invoices');
       expect(ENTITY_MAPPING.Invoice.priority).toBe(3);
     });
 
-    it('should include Assessment entity mapping to assessments', () => {
-      expect(ENTITY_MAPPING.Assessment.supabaseTable).toBe('assessments');
+    it('should include Assessment entity mapping to vi_assessments', () => {
+      expect(ENTITY_MAPPING.Assessment.supabaseTable).toBe('vi_assessments');
       expect(ENTITY_MAPPING.Assessment.priority).toBe(4);
     });
 
-    it('should include AssessmentQuestion entity mapping to assessment_questions', () => {
-      expect(ENTITY_MAPPING.AssessmentQuestion.supabaseTable).toBe('assessment_questions');
+    it('should include AssessmentQuestion entity mapping to vi_assessment_questions', () => {
+      expect(ENTITY_MAPPING.AssessmentQuestion.supabaseTable).toBe('vi_assessment_questions');
       expect(ENTITY_MAPPING.AssessmentQuestion.priority).toBe(4);
     });
 
-    it('should include AssessmentResult entity mapping to assessment_submissions', () => {
-      expect(ENTITY_MAPPING.AssessmentResult.supabaseTable).toBe('assessment_submissions');
+    it('should include AssessmentResult entity mapping to vi_assessment_submissions', () => {
+      expect(ENTITY_MAPPING.AssessmentResult.supabaseTable).toBe('vi_assessment_submissions');
       expect(ENTITY_MAPPING.AssessmentResult.priority).toBe(4);
     });
 
-    it('should include AttendanceSession entity mapping to attendance_sessions', () => {
-      expect(ENTITY_MAPPING.AttendanceSession.supabaseTable).toBe('attendance_sessions');
+    it('should include AttendanceSession entity mapping to vi_attendance_sessions', () => {
+      expect(ENTITY_MAPPING.AttendanceSession.supabaseTable).toBe('vi_attendance_sessions');
       expect(ENTITY_MAPPING.AttendanceSession.priority).toBe(4);
     });
 
-    it('should include AttendanceRecord entity mapping to attendance_records', () => {
-      expect(ENTITY_MAPPING.AttendanceRecord.supabaseTable).toBe('attendance_records');
+    it('should include AttendanceRecord entity mapping to vi_attendance_records', () => {
+      expect(ENTITY_MAPPING.AttendanceRecord.supabaseTable).toBe('vi_attendance_records');
       expect(ENTITY_MAPPING.AttendanceRecord.priority).toBe(4);
     });
 
-    it('should include Feedback entity mapping to feedback', () => {
-      expect(ENTITY_MAPPING.Feedback.supabaseTable).toBe('feedback');
+    it('should include Feedback entity mapping to vi_feedback', () => {
+      expect(ENTITY_MAPPING.Feedback.supabaseTable).toBe('vi_feedback');
       expect(ENTITY_MAPPING.Feedback.priority).toBe(5);
     });
 
-    it('should include Certificate entity mapping to certificates', () => {
-      expect(ENTITY_MAPPING.Certificate.supabaseTable).toBe('certificates');
+    it('should include Certificate entity mapping to vi_certificates', () => {
+      expect(ENTITY_MAPPING.Certificate.supabaseTable).toBe('vi_certificates');
       expect(ENTITY_MAPPING.Certificate.priority).toBe(5);
     });
 
@@ -115,29 +115,29 @@ describe('Entity Mapping Module', () => {
 
   describe('getSupabaseTableName', () => {
     it('should return correct table name for User', () => {
-      expect(getSupabaseTableName('User')).toBe('users_profile');
+      expect(getSupabaseTableName('User')).toBe('vi_users_profile');
     });
 
     it('should return correct table name for Program', () => {
-      expect(getSupabaseTableName('Program')).toBe('programs');
+      expect(getSupabaseTableName('Program')).toBe('vi_programs');
     });
 
     it('should return correct table name for Registration', () => {
-      expect(getSupabaseTableName('Registration')).toBe('enrollments');
+      expect(getSupabaseTableName('Registration')).toBe('vi_enrollments');
     });
 
     it('should return correct table name for AssessmentResult', () => {
-      expect(getSupabaseTableName('AssessmentResult')).toBe('assessment_submissions');
+      expect(getSupabaseTableName('AssessmentResult')).toBe('vi_assessment_submissions');
     });
 
     it('should return correct table name for AssessmentQuestion', () => {
-      expect(getSupabaseTableName('AssessmentQuestion')).toBe('assessment_questions');
+      expect(getSupabaseTableName('AssessmentQuestion')).toBe('vi_assessment_questions');
     });
 
     it('should handle case-insensitive lookups', () => {
-      expect(getSupabaseTableName('user')).toBe('users_profile');
-      expect(getSupabaseTableName('USER')).toBe('users_profile');
-      expect(getSupabaseTableName('program')).toBe('programs');
+      expect(getSupabaseTableName('user')).toBe('vi_users_profile');
+      expect(getSupabaseTableName('USER')).toBe('vi_users_profile');
+      expect(getSupabaseTableName('program')).toBe('vi_programs');
     });
 
     it('should return null for unknown entity', () => {
@@ -149,11 +149,11 @@ describe('Entity Mapping Module', () => {
     });
 
     it('should handle aliases like Enrollment', () => {
-      expect(getSupabaseTableName('Enrollment')).toBe('enrollments');
+      expect(getSupabaseTableName('Enrollment')).toBe('vi_enrollments');
     });
 
     it('should handle CorporateRegistration alias', () => {
-      expect(getSupabaseTableName('CorporateRegistration')).toBe('enrollments');
+      expect(getSupabaseTableName('CorporateRegistration')).toBe('vi_enrollments');
     });
   });
 
@@ -162,7 +162,7 @@ describe('Entity Mapping Module', () => {
       const mapping = getEntityMapping('Program');
       expect(mapping).toBeDefined();
       expect(mapping.localName).toBe('Program');
-      expect(mapping.supabaseTable).toBe('programs');
+      expect(mapping.supabaseTable).toBe('vi_programs');
       expect(mapping.priority).toBe(2);
     });
 
@@ -185,15 +185,15 @@ describe('Entity Mapping Module', () => {
 
   describe('getLocalEntityName', () => {
     it('should return local name for supabase table', () => {
-      expect(getLocalEntityName('users_profile')).toBe('User');
-      expect(getLocalEntityName('programs')).toBe('Program');
-      expect(getLocalEntityName('enrollments')).toBe('Registration');
+      expect(getLocalEntityName('vi_users_profile')).toBe('User');
+      expect(getLocalEntityName('vi_programs')).toBe('Program');
+      expect(getLocalEntityName('vi_enrollments')).toBe('Registration');
     });
 
     it('should handle case-insensitive lookups', () => {
-      expect(getLocalEntityName('users_profile')).toBe('User');
-      expect(getLocalEntityName('USERS_PROFILE')).toBe('User');
-      expect(getLocalEntityName('Programs')).toBe('Program');
+      expect(getLocalEntityName('vi_users_profile')).toBe('User');
+      expect(getLocalEntityName('vi_USERS_PROFILE')).toBe('User');
+      expect(getLocalEntityName('vi_Programs')).toBe('Program');
     });
 
     it('should return null for unknown table', () => {

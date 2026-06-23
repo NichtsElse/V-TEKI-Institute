@@ -135,67 +135,67 @@ describe('Entity Inspector Module', () => {
     it('should include Program entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Program).toBeDefined();
-      expect(registry.Program.supabaseTable).toBe('programs');
+      expect(registry.Program.supabaseTable).toBe('vi_programs');
     });
 
     it('should include Trainer entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Trainer).toBeDefined();
-      expect(registry.Trainer.supabaseTable).toBe('trainers');
+      expect(registry.Trainer.supabaseTable).toBe('vi_trainers');
     });
 
     it('should include Batch entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Batch).toBeDefined();
-      expect(registry.Batch.supabaseTable).toBe('batches');
+      expect(registry.Batch.supabaseTable).toBe('vi_batches');
     });
 
     it('should include Registration entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Registration).toBeDefined();
-      expect(registry.Registration.supabaseTable).toBe('enrollments');
+      expect(registry.Registration.supabaseTable).toBe('vi_enrollments');
     });
 
     it('should include Payment entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Payment).toBeDefined();
-      expect(registry.Payment.supabaseTable).toBe('payments');
+      expect(registry.Payment.supabaseTable).toBe('vi_payments');
     });
 
     it('should include Certificate entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Certificate).toBeDefined();
-      expect(registry.Certificate.supabaseTable).toBe('certificates');
+      expect(registry.Certificate.supabaseTable).toBe('vi_certificates');
     });
 
     it('should include Assessment entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Assessment).toBeDefined();
-      expect(registry.Assessment.supabaseTable).toBe('assessments');
+      expect(registry.Assessment.supabaseTable).toBe('vi_assessments');
     });
 
     it('should include AttendanceSession entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.AttendanceSession).toBeDefined();
-      expect(registry.AttendanceSession.supabaseTable).toBe('attendance_sessions');
+      expect(registry.AttendanceSession.supabaseTable).toBe('vi_attendance_sessions');
     });
 
     it('should include AttendanceRecord entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.AttendanceRecord).toBeDefined();
-      expect(registry.AttendanceRecord.supabaseTable).toBe('attendance_records');
+      expect(registry.AttendanceRecord.supabaseTable).toBe('vi_attendance_records');
     });
 
     it('should include Feedback entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.Feedback).toBeDefined();
-      expect(registry.Feedback.supabaseTable).toBe('feedback');
+      expect(registry.Feedback.supabaseTable).toBe('vi_feedback');
     });
 
     it('should include AssessmentResult entity', () => {
       const registry = buildEntityRegistry('src/api/appClient.js');
       expect(registry.AssessmentResult).toBeDefined();
-      expect(registry.AssessmentResult.supabaseTable).toBe('assessment_submissions');
+      expect(registry.AssessmentResult.supabaseTable).toBe('vi_assessment_submissions');
     });
 
     it('should parse Program entity fields', () => {

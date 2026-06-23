@@ -99,21 +99,21 @@ const parseInsertBatches = () => {
 };
 
 const deleteOrder = [
-  'feedback',
-  'assessment_submissions',
-  'assessment_questions',
-  'assessments',
-  'attendance_records',
-  'attendance_sessions',
-  'certificates',
-  'payments',
-  'enrollments',
-  'invoices',
-  'batches',
-  'programs',
-  'trainers',
-  'users_profile',
-  'organizations',
+  'vi_feedback',
+  'vi_assessment_submissions',
+  'vi_assessment_questions',
+  'vi_assessments',
+  'vi_attendance_records',
+  'vi_attendance_sessions',
+  'vi_certificates',
+  'vi_payments',
+  'vi_enrollments',
+  'vi_invoices',
+  'vi_batches',
+  'vi_programs',
+  'vi_trainers',
+  'vi_users_profile',
+  'vi_organizations',
 ];
 
 const assessments = [
@@ -380,15 +380,15 @@ for (const batch of parseInsertBatches()) {
 }
 
 if (assessments.length) {
-  const { error } = await supabase.from('assessments').upsert(assessments, { onConflict: 'id' });
+  const { error } = await supabase.from('vi_assessments').upsert(assessments, { onConflict: 'id' });
   if (error) throw new Error(`upsert assessments: ${error.message}`);
-  seeded.push({ table: 'assessments', rows: assessments.length });
+  seeded.push({ table: 'vi_assessments', rows: assessments.length });
 }
 
 if (assessmentQuestions.length) {
-  const { error } = await supabase.from('assessment_questions').upsert(assessmentQuestions, { onConflict: 'id' });
+  const { error } = await supabase.from('vi_assessment_questions').upsert(assessmentQuestions, { onConflict: 'id' });
   if (error) throw new Error(`upsert assessment_questions: ${error.message}`);
-  seeded.push({ table: 'assessment_questions', rows: assessmentQuestions.length });
+  seeded.push({ table: 'vi_assessment_questions', rows: assessmentQuestions.length });
 }
 
 console.log(JSON.stringify({ ok: true, seeded }, null, 2));

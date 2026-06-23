@@ -30,7 +30,12 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      const authResult = await appClient.auth.loginViaEmailPassword(email.trim(), password);
+      const loggedUser = await appClient.auth.loginViaEmailPassword(email.trim(), password);
+      if (loggedUser && !["admin", "super_admin", "academy_admin"].includes(loggedUser.role)) {
+        await appClient.auth.logout();
+        setError("Akses ditolak. Halaman ini hanya untuk Admin.");
+        return;
+      }
       // Wait a bit for auth context to update, or just redirect directly since the page will remount
       window.location.href = redirectUrl;
     } catch (err) {

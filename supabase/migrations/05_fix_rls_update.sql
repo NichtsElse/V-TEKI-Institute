@@ -6,20 +6,20 @@
 -- ============================================================
 
 -- ============================================================
--- STEP 1: Fix users_profile role constraint (tambahkan 'admin')
+-- STEP 1: Fix vi_users_profile role constraint (tambahkan 'admin')
 -- ============================================================
-ALTER TABLE users_profile DROP CONSTRAINT IF EXISTS users_profile_role_check;
+ALTER TABLE vi_users_profile DROP CONSTRAINT IF EXISTS users_profile_role_check;
 
-ALTER TABLE users_profile
+ALTER TABLE vi_users_profile
   ADD CONSTRAINT users_profile_role_check
   CHECK (role IN ('super_admin', 'academy_admin', 'admin', 'trainer', 'participant', 'corporate_pic', 'user'))
   NOT VALID;
 
-ALTER TABLE users_profile VALIDATE CONSTRAINT users_profile_role_check;
+ALTER TABLE vi_users_profile VALIDATE CONSTRAINT users_profile_role_check;
 
 
 -- ============================================================
--- STEP 2: Trigger otomatis buat users_profile saat user baru daftar
+-- STEP 2: Trigger otomatis buat vi_users_profile saat user baru daftar
 --         via Supabase Auth (Register page)
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
@@ -29,7 +29,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.users_profile (id, email, full_name, role, status, created_date)
+  INSERT INTO public.vi_users_profile (id, email, full_name, role, status, created_date)
   VALUES (
     NEW.id::text,
     NEW.email,
@@ -63,7 +63,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT tr.id
-  FROM trainers tr
+  FROM vi_trainers tr
   WHERE
     lower(coalesce(tr.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
     OR tr.id = auth.uid()::text
@@ -87,12 +87,12 @@ SET search_path = public
 AS $$
 DECLARE
   caller_role  text;
-  target_user  users_profile%ROWTYPE;
+  target_user  vi_users_profile%ROWTYPE;
   updated_user json;
 BEGIN
   -- Validasi caller adalah admin
   SELECT up.role INTO caller_role
-  FROM users_profile up
+  FROM vi_users_profile up
   WHERE lower(up.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
   LIMIT 1;
 
@@ -102,27 +102,27 @@ BEGIN
 
   -- Ambil data user target
   SELECT * INTO target_user
-  FROM users_profile
+  FROM vi_users_profile
   WHERE lower(email) = lower(target_email)
   LIMIT 1;
 
   IF target_user.id IS NULL THEN
-    RAISE EXCEPTION 'User with email % not found in users_profile', target_email;
+    RAISE EXCEPTION 'User with email % not found in vi_users_profile', target_email;
   END IF;
 
-  -- Update users_profile
-  UPDATE users_profile
+  -- Update vi_users_profile
+  UPDATE vi_users_profile
   SET
     role         = new_role,
     status       = COALESCE(new_status, status),
     updated_date = NOW()
   WHERE lower(email) = lower(target_email)
-  RETURNING to_json(users_profile.*) INTO updated_user;
+  RETURNING to_json(vi_users_profile.*) INTO updated_user;
 
-  -- Sync tabel trainers
+  -- Sync tabel vi_trainers
   IF new_role = 'trainer' THEN
-    -- Upsert ke tabel trainers agar bisa dipilih di batch
-    INSERT INTO trainers (id, full_name, email, status, created_date)
+    -- Upsert ke tabel vi_trainers agar bisa dipilih di batch
+    INSERT INTO vi_trainers (id, full_name, email, status, created_date)
     VALUES (
       target_user.id,
       target_user.full_name,
@@ -137,7 +137,7 @@ BEGIN
       updated_date = NOW();
 
     -- Juga coba match by email jika id berbeda
-    INSERT INTO trainers (id, full_name, email, status, created_date)
+    INSERT INTO vi_trainers (id, full_name, email, status, created_date)
     SELECT
       target_user.id,
       target_user.full_name,
@@ -145,7 +145,7 @@ BEGIN
       'active',
       NOW()
     WHERE NOT EXISTS (
-      SELECT 1 FROM trainers WHERE id = target_user.id
+      SELECT 1 FROM vi_trainers WHERE id = target_user.id
     )
     ON CONFLICT (email) DO UPDATE SET
       full_name    = EXCLUDED.full_name,
@@ -154,7 +154,7 @@ BEGIN
 
   ELSE
     -- Jika role bukan trainer lagi, nonaktifkan trainer record
-    UPDATE trainers
+    UPDATE vi_trainers
     SET status = 'inactive', updated_date = NOW()
     WHERE lower(email) = lower(target_email)
        OR id = target_user.id;
@@ -170,22 +170,22 @@ $$;
 -- ============================================================
 
 -- Enable RLS on all tables (safe jika sudah aktif)
-ALTER TABLE organizations          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users_profile          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE trainers               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE programs               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE batches                ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoices               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE enrollments            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE attendance_sessions    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE attendance_records     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE assessments            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE assessment_questions   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE assessment_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE feedback               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE certificates           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_organizations          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_users_profile          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_trainers               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_programs               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_batches                ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_invoices               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_enrollments            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_payments               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_attendance_sessions    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_attendance_records     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_assessments            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_assessment_questions   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_assessment_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_feedback               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_certificates           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vi_notifications          ENABLE ROW LEVEL SECURITY;
 
 -- Drop & recreate semua flow_ policies
 DO $cleanup$
@@ -197,10 +197,10 @@ BEGIN
     FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename IN (
-        'organizations','users_profile','trainers','programs','batches',
-        'invoices','enrollments','payments','attendance_sessions',
-        'attendance_records','assessments','assessment_questions',
-        'assessment_submissions','feedback','certificates','notifications'
+        'vi_organizations','vi_users_profile','vi_trainers','vi_programs','vi_batches',
+        'vi_invoices','vi_enrollments','vi_payments','vi_attendance_sessions',
+        'vi_attendance_records','vi_assessments','vi_assessment_questions',
+        'vi_assessment_submissions','vi_feedback','vi_certificates','vi_notifications'
       )
       AND (policyname LIKE 'mvp_%' OR policyname LIKE 'flow_%')
   LOOP
@@ -210,36 +210,36 @@ BEGIN
 END
 $cleanup$;
 
--- organizations
-CREATE POLICY "flow_admin_all_organizations" ON organizations
+-- vi_organizations
+CREATE POLICY "flow_admin_all_organizations" ON vi_organizations
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_corporate_select_own_organization" ON organizations
+CREATE POLICY "flow_corporate_select_own_organization" ON vi_organizations
   FOR SELECT TO authenticated
   USING (
     id = (SELECT public.current_app_user_organization_id())
     OR (SELECT public.is_admin_role())
   );
 
--- users_profile
-CREATE POLICY "flow_admin_select_all_users_profile" ON users_profile
+-- vi_users_profile
+CREATE POLICY "flow_admin_select_all_users_profile" ON vi_users_profile
   FOR SELECT TO authenticated
   USING ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_auth_select_own_users_profile" ON users_profile
+CREATE POLICY "flow_auth_select_own_users_profile" ON vi_users_profile
   FOR SELECT TO authenticated
   USING (public.is_own_user_profile(id, email));
 
-CREATE POLICY "flow_auth_insert_own_users_profile" ON users_profile
+CREATE POLICY "flow_auth_insert_own_users_profile" ON vi_users_profile
   FOR INSERT TO authenticated
   WITH CHECK (
     (SELECT public.is_admin_role())
     OR public.is_own_user_profile(id, email)
   );
 
-CREATE POLICY "flow_auth_update_users_profile" ON users_profile
+CREATE POLICY "flow_auth_update_users_profile" ON vi_users_profile
   FOR UPDATE TO authenticated
   USING (
     (SELECT public.is_admin_role())
@@ -250,36 +250,36 @@ CREATE POLICY "flow_auth_update_users_profile" ON users_profile
     OR public.is_own_user_profile(id, email)
   );
 
-CREATE POLICY "flow_admin_delete_users_profile" ON users_profile
+CREATE POLICY "flow_admin_delete_users_profile" ON vi_users_profile
   FOR DELETE TO authenticated
   USING ((SELECT public.is_admin_role()));
 
--- trainers
-CREATE POLICY "flow_public_select_trainers" ON trainers
+-- vi_trainers
+CREATE POLICY "flow_public_select_trainers" ON vi_trainers
   FOR SELECT TO anon, authenticated
   USING (status = 'active' OR (SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_admin_all_trainers" ON trainers
+CREATE POLICY "flow_admin_all_trainers" ON vi_trainers
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
--- programs
-CREATE POLICY "flow_public_select_programs" ON programs
+-- vi_programs
+CREATE POLICY "flow_public_select_programs" ON vi_programs
   FOR SELECT TO anon, authenticated
   USING (status = 'published' OR (SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_scoped_select_programs" ON programs
+CREATE POLICY "flow_scoped_select_programs" ON vi_programs
   FOR SELECT TO authenticated
   USING (
     (SELECT public.is_admin_role())
     OR EXISTS (
-      SELECT 1 FROM batches b
-      WHERE b.program_id = programs.id
+      SELECT 1 FROM vi_batches b
+      WHERE b.program_id = vi_programs.id
         AND (
           public.is_assigned_trainer_for_batch(b.id)
           OR EXISTS (
-            SELECT 1 FROM enrollments e
+            SELECT 1 FROM vi_enrollments e
             WHERE e.batch_id = b.id
               AND public.can_access_enrollment(e.id, e.participant_id, e.email, e.organization_id, e.batch_id)
           )
@@ -287,13 +287,13 @@ CREATE POLICY "flow_scoped_select_programs" ON programs
     )
   );
 
-CREATE POLICY "flow_admin_all_programs" ON programs
+CREATE POLICY "flow_admin_all_programs" ON vi_programs
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
--- batches
-CREATE POLICY "flow_public_select_batches" ON batches
+-- vi_batches
+CREATE POLICY "flow_public_select_batches" ON vi_batches
   FOR SELECT TO anon, authenticated
   USING (
     status IN ('open','closed','published')
@@ -301,151 +301,151 @@ CREATE POLICY "flow_public_select_batches" ON batches
     OR ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(id))
   );
 
-CREATE POLICY "flow_scoped_select_batches" ON batches
+CREATE POLICY "flow_scoped_select_batches" ON vi_batches
   FOR SELECT TO authenticated
   USING (
     (SELECT public.is_admin_role())
     OR public.is_assigned_trainer_for_batch(id)
     OR EXISTS (
-      SELECT 1 FROM enrollments e
-      WHERE e.batch_id = batches.id
+      SELECT 1 FROM vi_enrollments e
+      WHERE e.batch_id = vi_batches.id
         AND public.can_access_enrollment(e.id, e.participant_id, e.email, e.organization_id, e.batch_id)
     )
   );
 
-CREATE POLICY "flow_admin_all_batches" ON batches
+CREATE POLICY "flow_admin_all_batches" ON vi_batches
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
--- invoices
-CREATE POLICY "flow_admin_all_invoices" ON invoices
+-- vi_invoices
+CREATE POLICY "flow_admin_all_invoices" ON vi_invoices
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_scoped_select_invoices" ON invoices
+CREATE POLICY "flow_scoped_select_invoices" ON vi_invoices
   FOR SELECT TO authenticated
   USING (public.can_access_invoice(id, organization_id));
 
--- enrollments
-CREATE POLICY "flow_public_insert_enrollments" ON enrollments
+-- vi_enrollments
+CREATE POLICY "flow_public_insert_enrollments" ON vi_enrollments
   FOR INSERT TO anon, authenticated
   WITH CHECK (true);
 
-CREATE POLICY "flow_admin_delete_enrollments" ON enrollments
+CREATE POLICY "flow_admin_delete_enrollments" ON vi_enrollments
   FOR DELETE TO authenticated
   USING ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_scoped_select_enrollments" ON enrollments
+CREATE POLICY "flow_scoped_select_enrollments" ON vi_enrollments
   FOR SELECT TO authenticated
   USING (public.can_access_enrollment(id, participant_id, email, organization_id, batch_id));
 
-CREATE POLICY "flow_scoped_update_enrollments" ON enrollments
+CREATE POLICY "flow_scoped_update_enrollments" ON vi_enrollments
   FOR UPDATE TO authenticated
   USING (public.can_access_enrollment(id, participant_id, email, organization_id, batch_id))
   WITH CHECK (public.can_access_enrollment(id, participant_id, email, organization_id, batch_id));
 
--- payments
-CREATE POLICY "flow_public_insert_payments" ON payments
+-- vi_payments
+CREATE POLICY "flow_public_insert_payments" ON vi_payments
   FOR INSERT TO anon, authenticated
   WITH CHECK (true);
 
-CREATE POLICY "flow_admin_all_payments" ON payments
+CREATE POLICY "flow_admin_all_payments" ON vi_payments
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_scoped_select_payments" ON payments
+CREATE POLICY "flow_scoped_select_payments" ON vi_payments
   FOR SELECT TO authenticated
   USING (public.can_access_payment(registration_id, invoice_id));
 
--- attendance_sessions
-CREATE POLICY "flow_admin_all_attendance_sessions" ON attendance_sessions
+-- vi_attendance_sessions
+CREATE POLICY "flow_admin_all_attendance_sessions" ON vi_attendance_sessions
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_manage_attendance_sessions" ON attendance_sessions
+CREATE POLICY "flow_trainer_manage_attendance_sessions" ON vi_attendance_sessions
   FOR ALL TO authenticated
   USING ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id))
   WITH CHECK ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id));
 
-CREATE POLICY "flow_participant_select_attendance_sessions" ON attendance_sessions
+CREATE POLICY "flow_participant_select_attendance_sessions" ON vi_attendance_sessions
   FOR SELECT TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM enrollments e
-      WHERE e.batch_id = attendance_sessions.batch_id
+      SELECT 1 FROM vi_enrollments e
+      WHERE e.batch_id = vi_attendance_sessions.batch_id
         AND public.is_own_enrollment(e.id)
     )
   );
 
--- attendance_records
-CREATE POLICY "flow_admin_all_attendance_records" ON attendance_records
+-- vi_attendance_records
+CREATE POLICY "flow_admin_all_attendance_records" ON vi_attendance_records
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_manage_attendance_records" ON attendance_records
+CREATE POLICY "flow_trainer_manage_attendance_records" ON vi_attendance_records
   FOR ALL TO authenticated
   USING ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id))
   WITH CHECK ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id));
 
-CREATE POLICY "flow_participant_select_attendance_records" ON attendance_records
+CREATE POLICY "flow_participant_select_attendance_records" ON vi_attendance_records
   FOR SELECT TO authenticated
   USING (public.is_own_enrollment(registration_id));
 
--- assessments
-CREATE POLICY "flow_admin_all_assessments" ON assessments
+-- vi_assessments
+CREATE POLICY "flow_admin_all_assessments" ON vi_assessments
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_manage_assessments" ON assessments
+CREATE POLICY "flow_trainer_manage_assessments" ON vi_assessments
   FOR ALL TO authenticated
   USING ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id))
   WITH CHECK ((SELECT public.is_trainer_role()) AND public.is_assigned_trainer_for_batch(batch_id));
 
-CREATE POLICY "flow_participant_select_assessments" ON assessments
+CREATE POLICY "flow_participant_select_assessments" ON vi_assessments
   FOR SELECT TO authenticated
   USING (public.can_access_assessment(id, batch_id));
 
--- assessment_questions
-CREATE POLICY "flow_admin_all_assessment_questions" ON assessment_questions
+-- vi_assessment_questions
+CREATE POLICY "flow_admin_all_assessment_questions" ON vi_assessment_questions
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_manage_assessment_questions" ON assessment_questions
+CREATE POLICY "flow_trainer_manage_assessment_questions" ON vi_assessment_questions
   FOR ALL TO authenticated
   USING (public.is_assigned_trainer_for_assessment(assessment_id))
   WITH CHECK (public.is_assigned_trainer_for_assessment(assessment_id));
 
-CREATE POLICY "flow_participant_select_assessment_questions" ON assessment_questions
+CREATE POLICY "flow_participant_select_assessment_questions" ON vi_assessment_questions
   FOR SELECT TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM assessments a
-      WHERE a.id = assessment_questions.assessment_id
+      SELECT 1 FROM vi_assessments a
+      WHERE a.id = vi_assessment_questions.assessment_id
         AND public.can_access_assessment(a.id, a.batch_id)
     )
   );
 
--- assessment_submissions
-CREATE POLICY "flow_admin_all_assessment_submissions" ON assessment_submissions
+-- vi_assessment_submissions
+CREATE POLICY "flow_admin_all_assessment_submissions" ON vi_assessment_submissions
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_select_update_assessment_submissions" ON assessment_submissions
+CREATE POLICY "flow_trainer_select_update_assessment_submissions" ON vi_assessment_submissions
   FOR SELECT TO authenticated
   USING (
     (SELECT public.is_trainer_role())
     AND public.is_assigned_trainer_for_assessment(assessment_id)
   );
 
-CREATE POLICY "flow_trainer_update_assessment_submissions" ON assessment_submissions
+CREATE POLICY "flow_trainer_update_assessment_submissions" ON vi_assessment_submissions
   FOR UPDATE TO authenticated
   USING (
     (SELECT public.is_trainer_role())
@@ -456,21 +456,21 @@ CREATE POLICY "flow_trainer_update_assessment_submissions" ON assessment_submiss
     AND public.is_assigned_trainer_for_assessment(assessment_id)
   );
 
-CREATE POLICY "flow_participant_select_assessment_submissions" ON assessment_submissions
+CREATE POLICY "flow_participant_select_assessment_submissions" ON vi_assessment_submissions
   FOR SELECT TO authenticated
   USING (
     public.is_own_enrollment(registration_id)
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
-CREATE POLICY "flow_participant_insert_assessment_submissions" ON assessment_submissions
+CREATE POLICY "flow_participant_insert_assessment_submissions" ON vi_assessment_submissions
   FOR INSERT TO authenticated
   WITH CHECK (
     public.is_own_enrollment(registration_id)
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
-CREATE POLICY "flow_participant_update_assessment_submissions" ON assessment_submissions
+CREATE POLICY "flow_participant_update_assessment_submissions" ON vi_assessment_submissions
   FOR UPDATE TO authenticated
   USING (
     public.is_own_enrollment(registration_id)
@@ -481,34 +481,34 @@ CREATE POLICY "flow_participant_update_assessment_submissions" ON assessment_sub
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
--- feedback
-CREATE POLICY "flow_admin_all_feedback" ON feedback
+-- vi_feedback
+CREATE POLICY "flow_admin_all_feedback" ON vi_feedback
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_trainer_select_feedback" ON feedback
+CREATE POLICY "flow_trainer_select_feedback" ON vi_feedback
   FOR SELECT TO authenticated
   USING (
     (SELECT public.is_trainer_role())
     AND public.is_assigned_trainer_for_batch(batch_id)
   );
 
-CREATE POLICY "flow_participant_select_feedback" ON feedback
+CREATE POLICY "flow_participant_select_feedback" ON vi_feedback
   FOR SELECT TO authenticated
   USING (
     public.is_own_enrollment(registration_id)
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
-CREATE POLICY "flow_participant_insert_feedback" ON feedback
+CREATE POLICY "flow_participant_insert_feedback" ON vi_feedback
   FOR INSERT TO authenticated
   WITH CHECK (
     public.is_own_enrollment(registration_id)
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
-CREATE POLICY "flow_participant_update_feedback" ON feedback
+CREATE POLICY "flow_participant_update_feedback" ON vi_feedback
   FOR UPDATE TO authenticated
   USING (
     public.is_own_enrollment(registration_id)
@@ -519,32 +519,32 @@ CREATE POLICY "flow_participant_update_feedback" ON feedback
     OR lower(coalesce(participant_email,'')) = public.current_app_user_email()
   );
 
--- certificates
-CREATE POLICY "flow_admin_all_certificates" ON certificates
+-- vi_certificates
+CREATE POLICY "flow_admin_all_certificates" ON vi_certificates
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_public_verify_certificates" ON certificates
+CREATE POLICY "flow_public_verify_certificates" ON vi_certificates
   FOR SELECT TO anon, authenticated
   USING (verification_status = 'valid');
 
-CREATE POLICY "flow_participant_select_update_certificates" ON certificates
+CREATE POLICY "flow_participant_select_update_certificates" ON vi_certificates
   FOR UPDATE TO authenticated
   USING (public.can_access_certificate(registration_id, participant_email))
   WITH CHECK (public.can_access_certificate(registration_id, participant_email));
 
-CREATE POLICY "flow_participant_select_certificates" ON certificates
+CREATE POLICY "flow_participant_select_certificates" ON vi_certificates
   FOR SELECT TO authenticated
   USING (public.can_access_certificate(registration_id, participant_email));
 
--- notifications
-CREATE POLICY "flow_admin_all_notifications" ON notifications
+-- vi_notifications
+CREATE POLICY "flow_admin_all_notifications" ON vi_notifications
   FOR ALL TO authenticated
   USING ((SELECT public.is_admin_role()))
   WITH CHECK ((SELECT public.is_admin_role()));
 
-CREATE POLICY "flow_auth_own_notifications" ON notifications
+CREATE POLICY "flow_auth_own_notifications" ON vi_notifications
   FOR ALL TO authenticated
   USING (user_id = auth.uid()::text)
   WITH CHECK (user_id = auth.uid()::text);

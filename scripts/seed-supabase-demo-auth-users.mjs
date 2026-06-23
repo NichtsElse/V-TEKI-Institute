@@ -121,7 +121,7 @@ const findAuthUserByEmail = async (email) => {
 
 const syncUsersProfile = async (authUserId, demoUser) => {
   const { data: existingProfile, error: profileError } = await supabase
-    .from('users_profile')
+    .from('vi_users_profile')
     .select('*')
     .eq('email', demoUser.email)
     .maybeSingle();
@@ -142,7 +142,7 @@ const syncUsersProfile = async (authUserId, demoUser) => {
     updated_date: new Date().toISOString(),
   };
 
-  const { error: upsertError } = await supabase.from('users_profile').upsert(nextProfile, { onConflict: 'id' });
+  const { error: upsertError } = await supabase.from('vi_users_profile').upsert(nextProfile, { onConflict: 'id' });
   if (upsertError) throw upsertError;
 };
 

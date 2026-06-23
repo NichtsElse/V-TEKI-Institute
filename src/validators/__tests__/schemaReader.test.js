@@ -80,10 +80,10 @@ describe('Schema Reader Module', () => {
     });
 
     it('should detect foreign key references', () => {
-      const line = 'program_id UUID NOT NULL REFERENCES programs(id) ON DELETE CASCADE,';
+      const line = 'program_id UUID NOT NULL REFERENCES vi_programs(id) ON DELETE CASCADE,';
       const result = parseColumnDefinition(line);
       expect(result.isFK).toBe(true);
-      expect(result.references).toBe('programs.id');
+      expect(result.references).toBe('vi_programs.id');
     });
 
     it('should return null for table constraints', () => {
@@ -113,51 +113,51 @@ describe('Schema Reader Module', () => {
       expect(typeof schema.tables).toBe('object');
     });
 
-    it('should parse organizations table', () => {
+    it('should parse vi_organizations table', () => {
       const schema = readAndParseSchema(schemaPath);
-      expect(schema.tables.organizations).toBeDefined();
-      expect(schema.tables.organizations.columns).toBeDefined();
-      expect(schema.tables.organizations.columns.id).toBeDefined();
-      expect(schema.tables.organizations.columns.name).toBeDefined();
+      expect(schema.tables.vi_organizations).toBeDefined();
+      expect(schema.tables.vi_organizations.columns).toBeDefined();
+      expect(schema.tables.vi_organizations.columns.id).toBeDefined();
+      expect(schema.tables.vi_organizations.columns.name).toBeDefined();
     });
 
-    it('should parse programs table with correct columns', () => {
+    it('should parse vi_programs table with correct columns', () => {
       const schema = readAndParseSchema(schemaPath);
-      const programsTable = schema.tables.programs;
+      const programsTable = schema.tables.vi_programs;
       expect(programsTable).toBeDefined();
       expect(programsTable.columns.id).toBeDefined();
       expect(programsTable.columns.name).toBeDefined();
       expect(programsTable.columns.code).toBeDefined();
     });
 
-    it('should leave programs.status enum empty when schema has no CHECK enum', () => {
+    it('should leave vi_programs.status enum empty when schema has no CHECK enum', () => {
       const schema = readAndParseSchema(schemaPath);
-      const statusColumn = schema.tables.programs.columns.status;
+      const statusColumn = schema.tables.vi_programs.columns.status;
       expect(statusColumn.enums).toEqual([]);
     });
 
     it('should mark id columns as NOT NULL', () => {
       const schema = readAndParseSchema(schemaPath);
-      const orgId = schema.tables.organizations.columns.id;
+      const orgId = schema.tables.vi_organizations.columns.id;
       expect(orgId.nullable).toBe(false);
     });
 
-    it('should mark name columns in organizations as NOT NULL', () => {
+    it('should mark name columns in vi_organizations as NOT NULL', () => {
       const schema = readAndParseSchema(schemaPath);
-      const orgName = schema.tables.organizations.columns.name;
+      const orgName = schema.tables.vi_organizations.columns.name;
       expect(orgName.nullable).toBe(false);
     });
 
-    it('should parse foreign key references in batches table', () => {
+    it('should parse foreign key references in vi_batches table', () => {
       const schema = readAndParseSchema(schemaPath);
-      const programIdColumn = schema.tables.batches.columns.program_id;
+      const programIdColumn = schema.tables.vi_batches.columns.program_id;
       expect(programIdColumn.isFK).toBe(true);
-      expect(programIdColumn.references).toBe('programs.id');
+      expect(programIdColumn.references).toBe('vi_programs.id');
     });
 
-    it('should parse users_profile table', () => {
+    it('should parse vi_users_profile table', () => {
       const schema = readAndParseSchema(schemaPath);
-      const usersTable = schema.tables.users_profile;
+      const usersTable = schema.tables.vi_users_profile;
       expect(usersTable).toBeDefined();
       expect(usersTable.columns.role).toBeDefined();
       expect(usersTable.columns.role.enums).toContain('super_admin');
@@ -166,9 +166,9 @@ describe('Schema Reader Module', () => {
       expect(usersTable.columns.role.enums).toContain('participant');
     });
 
-    it('should parse enrollments table with all expected columns', () => {
+    it('should parse vi_enrollments table with all expected columns', () => {
       const schema = readAndParseSchema(schemaPath);
-      const enrollmentsTable = schema.tables.enrollments;
+      const enrollmentsTable = schema.tables.vi_enrollments;
       expect(enrollmentsTable).toBeDefined();
       expect(enrollmentsTable.columns.id).toBeDefined();
       expect(enrollmentsTable.columns.batch_id).toBeDefined();
@@ -178,13 +178,13 @@ describe('Schema Reader Module', () => {
 
     it('should leave payment_status enum empty when schema has no CHECK enum', () => {
       const schema = readAndParseSchema(schemaPath);
-      const paymentStatusColumn = schema.tables.enrollments.columns.payment_status;
+      const paymentStatusColumn = schema.tables.vi_enrollments.columns.payment_status;
       expect(paymentStatusColumn.enums).toEqual([]);
     });
 
-    it('should parse certificates table', () => {
+    it('should parse vi_certificates table', () => {
       const schema = readAndParseSchema(schemaPath);
-      const certificatesTable = schema.tables.certificates;
+      const certificatesTable = schema.tables.vi_certificates;
       expect(certificatesTable).toBeDefined();
       expect(certificatesTable.columns.registration_id).toBeDefined();
       expect(certificatesTable.columns.certificate_number).toBeDefined();
