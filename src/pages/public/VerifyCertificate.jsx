@@ -56,18 +56,6 @@ export default function VerifyCertificate() {
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
               </Button>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs">
-              {['VTK-2026-AIBT-000001', 'participant@vteki.local', 'VTK-2026-DAB-000002'].map((sample) => (
-                <button
-                  key={sample}
-                  type="button"
-                  onClick={() => setQuery(sample)}
-                  className="rounded-full border border-border bg-muted/40 px-3 py-1 text-muted-foreground hover:bg-muted"
-                >
-                  {sample}
-                </button>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
