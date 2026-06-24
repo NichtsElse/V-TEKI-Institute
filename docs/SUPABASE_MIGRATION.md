@@ -64,12 +64,12 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role_key_baru>
 
 ## Langkah 4: Import Skema & Data ke Project Baru
 
-Project Supabase baru masih kosong (belum ada tabel). Anda harus menjalankan file SQL secara berurutan.
+Project Supabase baru masih kosong (belum ada tabel). Anda harus menjalankan file SQL secara berurutan dari folder `supabase/migrations/`.
 
 ### Cara Menjalankan File SQL:
 1. Di **Supabase Dashboard** project baru, klik menu **SQL Editor** di sidebar kiri.
 2. Klik tombol **New query**.
-3. Buka file SQL di folder project Anda menggunakan text editor (misal: VS Code).
+3. Buka file SQL di folder project Anda (`supabase/migrations/`) menggunakan text editor (misal: VS Code).
 4. Salin **seluruh isi** file SQL tersebut.
 5. Tempel (paste) ke SQL Editor Supabase.
 6. Klik tombol **Run** (atau tekan `Ctrl+Enter` / `Cmd+Enter`).
@@ -78,21 +78,33 @@ Project Supabase baru masih kosong (belum ada tabel). Anda harus menjalankan fil
 
 #### 4a. Buat Tabel (Schema) — Wajib Pertama
 ```
-supabase/schema_fixed.sql
+supabase/migrations/01_schema.sql
 ```
 > Membuat semua tabel yang dibutuhkan aplikasi (users_profile, programs, batches, enrollments, dll.).
 
-#### 4b. Isi Data Demo (Seed) — Opsional tapi Disarankan
+#### 4b. Aktifkan Kebijakan Akses (RLS Policies) — Wajib
 ```
-supabase/seed_complete.sql
-```
-> Mengisi tabel dengan data demo (akun admin, trainer, participant, program, batch, dll.) agar aplikasi langsung bisa digunakan.
-
-#### 4c. Aktifkan Kebijakan Akses (RLS Policies) — Wajib untuk Keamanan
-```
-supabase/policies_mvp_read_access.sql
+supabase/migrations/02_policies.sql
 ```
 > Mengaktifkan Row Level Security (RLS) agar setiap user hanya bisa mengakses data yang diizinkan sesuai role mereka.
+
+#### 4c. Isi Akun Demo (Auth Seed) — Opsional tapi Disarankan
+```
+supabase/migrations/03_seed_auth.sql
+```
+> Mengisi tabel autentikasi dengan akun-akun demo.
+
+#### 4d. Isi Data Demo (App Data Seed) — Opsional tapi Disarankan
+```
+supabase/migrations/04_seed_data.sql
+```
+> Mengisi data program, batch, absensi, assessment, dan feedback demo.
+
+#### 4e. Perbaikan RLS Update Policy — Sangat Disarankan
+```
+supabase/migrations/05_fix_rls_update.sql
+```
+> Mengaplikasikan perbaikan akses kebijakan RLS terbaru.
 
 ---
 
@@ -142,9 +154,7 @@ Aplikasi V-TEKI Anda sekarang sudah terhubung ke project Supabase yang baru!
 Sebelum mengakui migrasi selesai, pastikan semua poin berikut sudah terpenuhi:
 
 - [ ] File `.env.local` sudah diperbarui dengan URL dan kunci API Supabase baru.
-- [ ] File `schema_fixed.sql` sudah dijalankan di SQL Editor Supabase baru.
-- [ ] File `seed_complete.sql` sudah dijalankan (jika butuh data demo).
-- [ ] File `policies_mvp_read_access.sql` sudah dijalankan.
+- [ ] File SQL migrasi di folder `supabase/migrations/` (01 s.d 05) sudah dijalankan berurutan di SQL Editor Supabase baru.
 - [ ] Google OAuth dikonfigurasi ulang dengan Callback URL baru (jika menggunakan Google Sign-In).
 - [ ] Dev server sudah di-restart.
 - [ ] Login dengan email/password berhasil.
@@ -160,12 +170,11 @@ Sebelum mengakui migrasi selesai, pastikan semua poin berikut sudah terpenuhi:
 - Buka browser console (F12) dan cek apakah ada error koneksi ke URL Supabase.
 
 ### ❌ Data kosong / tabel tidak ditemukan
-- Pastikan `schema_fixed.sql` sudah dijalankan di SQL Editor Supabase baru.
-- Pastikan `seed_complete.sql` sudah dijalankan untuk data demo.
+- Pastikan file migrasi `01_schema.sql` (skema) dan file seed `03_seed_auth.sql` & `04_seed_data.sql` sudah dijalankan di SQL Editor Supabase baru.
 
 ### ❌ Error Google OAuth: `redirect_uri_mismatch`
 - Pastikan URL Callback Supabase yang **baru** sudah dimasukkan di Google Cloud Console (Langkah 5b).
 - Lihat panduan lengkap di [`docs/GOOGLE_OAUTH_SETUP.md`](GOOGLE_OAUTH_SETUP.md).
 
 ### ❌ Error: `relation "users_profile" does not exist`
-- Tabel belum dibuat. Jalankan `schema_fixed.sql` di SQL Editor Supabase.
+- Tabel belum dibuat. Jalankan `01_schema.sql` di SQL Editor Supabase.

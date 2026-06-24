@@ -86,14 +86,15 @@ SUPABASE_SECRET_KEY=your_secret_key
 
 The frontend should run with only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` available at runtime. The service role or secret key is only needed for bootstrap tasks such as seeding data or applying policies from scripts.
 
-Recommended setup order:
+Recommended setup order (run in SQL Editor in this exact order):
 
-1. Import `supabase/schema_fixed.sql`.
-2. Import `supabase/seed_complete.sql`.
-3. Run the seed/setup script with service role access once.
-4. Import `supabase/policies_mvp_read_access.sql` for demo RLS.
-5. Start the app with the `VITE_` keys only.
-6. Verify role flows, then keep the app running on anon/public key only.
+1. Run **`supabase/migrations/01_schema.sql`** to create all tables.
+2. Run **`supabase/migrations/02_policies.sql`** to set up Row Level Security and access policies.
+3. Run **`supabase/migrations/03_seed_auth.sql`** to seed demo authentication accounts.
+4. Run **`supabase/migrations/04_seed_data.sql`** to seed application dummy data.
+5. Run **`supabase/migrations/05_fix_rls_update.sql`** to apply RLS policy updates/fixes.
+6. Start the app with the `VITE_` keys only.
+7. Verify role flows, then keep the app running on anon/public key only.
 
 ## Seeded User Profiles
 

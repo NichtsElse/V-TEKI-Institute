@@ -41,11 +41,9 @@ _Last updated: 2026-06-19_
 ## Recommended Setup Flow
 
 1. Buat project baru di Supabase.
-2. Jalankan `supabase/schema_fixed.sql` di SQL Editor.
-3. Jalankan `supabase/seed_complete.sql` untuk data demo.
-4. Jalankan `supabase/policies_mvp_read_access.sql` untuk RLS demo/publik.
-5. Konfirmasi frontend dapat membaca data dengan anon/publishable key.
-6. Hapus ketergantungan frontend pada service-role atau secret key.
+2. Jalankan script SQL di folder `supabase/migrations/` secara berurutan (`01_schema.sql` -> `02_policies.sql` -> `03_seed_auth.sql` -> `04_seed_data.sql` -> `05_fix_rls_update.sql`) di SQL Editor.
+3. Konfirmasi frontend dapat membaca data dengan anon/publishable key.
+4. Hapus ketergantungan frontend pada service-role atau secret key.
 
 > Panduan lengkap ganti project Supabase: [`docs/SUPABASE_MIGRATION.md`](SUPABASE_MIGRATION.md)
 

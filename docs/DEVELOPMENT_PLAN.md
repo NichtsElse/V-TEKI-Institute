@@ -72,9 +72,8 @@ _Last updated: 2026-06-19_
 
 ## Next Steps (Future)
 
-1. Import `supabase/schema_fixed.sql` ke project Supabase baru jika ingin ganti project.
-2. Import `supabase/seed_complete.sql` untuk data demo.
-3. Verifikasi semua role flow terhadap data Supabase.
-4. Aktifkan RLS policies tabel per tabel setelah verifikasi role.
-5. Pertimbangkan Express.js API layer hanya jika project membutuhkan backend dedicated.
-6. Tambahkan file upload storage jika kebutuhan upload aktif.
+1. Jalankan migrasi SQL di folder `supabase/migrations/` secara berurutan pada project Supabase baru jika ingin ganti project.
+2. Verifikasi semua role flow terhadap data Supabase.
+3. Aktifkan RLS policies tabel per tabel (sudah disertakan dalam file migrasi).
+4. Pertimbangkan Express.js API layer hanya jika project membutuhkan backend dedicated.
+5. Tambahkan file upload storage jika kebutuhan upload aktif.

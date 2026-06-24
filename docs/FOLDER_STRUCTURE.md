@@ -24,16 +24,20 @@ _Last updated: 2026-06-19_
 │   ├── DEVELOPMENT_PLAN.md
 │   ├── FOLDER_STRUCTURE.md
 │   ├── GOOGLE_OAUTH_SETUP.md      # Panduan setup Google Sign-In
-│   ├── IMPLEMENTATION_BLUEPRINT.md
-│   ├── IMPLEMENTATION_COMPLETE.md
-│   ├── IMPLEMENTATION_SUMMARY.md
 │   ├── SUPABASE_KEYS.md
 │   └── SUPABASE_MIGRATION.md      # Panduan ganti project Supabase
 │
-├── supabase/                      # File SQL untuk setup database
+├── supabase/                      # Konfigurasi & Migrasi Database Supabase
+│   ├── README.md                  # Panduan migrasi database
 │   ├── schema_fixed.sql           # Skema tabel
-│   ├── seed_complete.sql          # Data demo
-│   └── policies_mvp_read_access.sql # RLS policies
+│   ├── archive/                   # File SQL lama yang diarsipkan
+│   └── migrations/                # Script SQL migrasi berurutan
+│       ├── 00_reset_database.sql
+│       ├── 01_schema.sql
+│       ├── 02_policies.sql
+│       ├── 03_seed_auth.sql
+│       ├── 04_seed_data.sql
+│       └── 05_fix_rls_update.sql
 │
 ├── src/
 │   ├── api/
